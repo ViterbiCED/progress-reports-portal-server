@@ -1,0 +1,23 @@
+{
+  "name": "progress-reports-portal-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ayushimi/progress-reports-portal-server.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ayushimi/progress-reports-portal-server/issues"
+  },
+  "homepage": "https://github.com/ayushimi/progress-reports-portal-server#readme",
+  "dependencies": {
+    "express": "^4.18.1"
+  }
+}
