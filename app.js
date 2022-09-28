@@ -36,6 +36,9 @@ app.get('/select', async function (req, res) {
   res.send(result);
 });
 
+/*
+  http://localhost:3000/add_mentor?name=Sushi&usc_id=123456&email=sushi@usc.edu&phone_number=1234567&major=Cooking
+*/
 app.get('/add_mentor', async function (req, res) {
   await add_mentor(req.query.name, req.query.usc_id, 
     req.query.email, req.query.phone_number, 
