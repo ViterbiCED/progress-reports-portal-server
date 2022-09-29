@@ -3,8 +3,365 @@ var app = express();
 
 var pg = require('pg');
 
-var conString = "postgres://postgres:401db@localhost:5432/401_db";
+var conString = "postgres://qkklgeigacjbcj:bd8db1e0a83be9f41f48c12d0e38a3544f95ee839b851346f5af805c3f962085@ec2-44-207-253-50.compute-1.amazonaws.com:5432/d1comvqekc3lck";
 var client;
+
+async function create_db() {
+  await client.query(`
+  --
+  
+  CREATE TABLE public.administrator_info (
+      id integer NOT NULL,
+      name character varying NOT NULL,
+      email character varying NOT NULL
+  );
+  
+  --
+  -- TOC entry 210 (class 1259 OID 16399)
+  -- Name: administrator_info_id_seq; Type: SEQUENCE; Schema: public; Owner: user
+  --
+  
+  CREATE SEQUENCE public.administrator_info_id_seq
+      AS integer
+      START WITH 1
+      INCREMENT BY 1
+      NO MINVALUE
+      NO MAXVALUE
+      CACHE 1;
+  
+  --
+  -- TOC entry 3355 (class 0 OID 0)
+  -- Dependencies: 210
+  -- Name: administrator_info_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: user
+  --
+  
+  ALTER SEQUENCE public.administrator_info_id_seq OWNED BY public.administrator_info.id;
+  
+  
+  --
+  -- TOC entry 215 (class 1259 OID 16443)
+  -- Name: mentee_info; Type: TABLE; Schema: public; Owner: postgres
+  --
+  
+  CREATE TABLE public.mentee_info (
+      name character varying NOT NULL,
+      usc_id bigint NOT NULL,
+      email character varying NOT NULL,
+      phone_number bigint NOT NULL,
+      major character varying NOT NULL,
+      freshman boolean NOT NULL,
+      semester_entered character varying NOT NULL,
+      meetings integer DEFAULT 0 NOT NULL,
+      id integer NOT NULL
+  );
+  
+  --
+  -- TOC entry 217 (class 1259 OID 16469)
+  -- Name: mentee_info_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+  --
+  
+  CREATE SEQUENCE public.mentee_info_id_seq
+      AS integer
+      START WITH 1
+      INCREMENT BY 1
+      NO MINVALUE
+      NO MAXVALUE
+      CACHE 1;
+  
+  --
+  -- TOC entry 3356 (class 0 OID 0)
+  -- Dependencies: 217
+  -- Name: mentee_info_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+  --
+  
+  ALTER SEQUENCE public.mentee_info_id_seq OWNED BY public.mentee_info.id;
+  
+  
+  --
+  -- TOC entry 212 (class 1259 OID 16410)
+  -- Name: mentor_info; Type: TABLE; Schema: public; Owner: postgres
+  --
+  
+  CREATE TABLE public.mentor_info (
+      id integer NOT NULL,
+      name character varying NOT NULL,
+      usc_id bigint NOT NULL,
+      email character varying NOT NULL,
+      phone_number bigint NOT NULL,
+      major character varying NOT NULL
+  );
+  
+  --
+  -- TOC entry 211 (class 1259 OID 16409)
+  -- Name: mentor_info_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+  --
+  
+  CREATE SEQUENCE public.mentor_info_id_seq
+      AS integer
+      START WITH 1
+      INCREMENT BY 1
+      NO MINVALUE
+      NO MAXVALUE
+      CACHE 1;
+  
+  --
+  -- TOC entry 3357 (class 0 OID 0)
+  -- Dependencies: 211
+  -- Name: mentor_info_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+  --
+  
+  ALTER SEQUENCE public.mentor_info_id_seq OWNED BY public.mentor_info.id;
+  
+  
+  --
+  -- TOC entry 216 (class 1259 OID 16456)
+  -- Name: mentors_mentees; Type: TABLE; Schema: public; Owner: postgres
+  --
+  
+  CREATE TABLE public.mentors_mentees (
+      mentee_id integer,
+      mentor_id integer
+  );
+  
+  --
+  -- TOC entry 214 (class 1259 OID 16429)
+  -- Name: progress_reports; Type: TABLE; Schema: public; Owner: postgres
+  --
+  
+  CREATE TABLE public.progress_reports (
+      id integer NOT NULL,
+      name character varying NOT NULL,
+      mentor_id integer,
+      session_date date NOT NULL,
+      summary text NOT NULL,
+      smart_goal text NOT NULL,
+      academic_development text NOT NULL,
+      career_development text NOT NULL,
+      personal_development text NOT NULL,
+      additional_info text NOT NULL,
+      session_length integer NOT NULL,
+      seeking_supervision boolean NOT NULL,
+      approved boolean DEFAULT false NOT NULL,
+      feedback text,
+      mentee_id integer
+  );
+  
+  --
+  -- TOC entry 213 (class 1259 OID 16428)
+  -- Name: progress_reports_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+  --
+  
+  CREATE SEQUENCE public.progress_reports_id_seq
+      AS integer
+      START WITH 1
+      INCREMENT BY 1
+      NO MINVALUE
+      NO MAXVALUE
+      CACHE 1;
+
+  
+  --
+  -- TOC entry 3358 (class 0 OID 0)
+  -- Dependencies: 213
+  -- Name: progress_reports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+  --
+  
+  ALTER SEQUENCE public.progress_reports_id_seq OWNED BY public.progress_reports.id;
+  
+  
+  --
+  -- TOC entry 3183 (class 2604 OID 16400)
+  -- Name: administrator_info id; Type: DEFAULT; Schema: public; Owner: user
+  --
+  
+  ALTER TABLE ONLY public.administrator_info ALTER COLUMN id SET DEFAULT nextval('public.administrator_info_id_seq'::regclass);
+  
+  
+  --
+  -- TOC entry 3188 (class 2604 OID 16470)
+  -- Name: mentee_info id; Type: DEFAULT; Schema: public; Owner: postgres
+  --
+  
+  ALTER TABLE ONLY public.mentee_info ALTER COLUMN id SET DEFAULT nextval('public.mentee_info_id_seq'::regclass);
+  
+  
+  --
+  -- TOC entry 3184 (class 2604 OID 16413)
+  -- Name: mentor_info id; Type: DEFAULT; Schema: public; Owner: postgres
+  --
+  
+  ALTER TABLE ONLY public.mentor_info ALTER COLUMN id SET DEFAULT nextval('public.mentor_info_id_seq'::regclass);
+  
+  
+  --
+  -- TOC entry 3185 (class 2604 OID 16432)
+  -- Name: progress_reports id; Type: DEFAULT; Schema: public; Owner: postgres
+  --
+  
+  ALTER TABLE ONLY public.progress_reports ALTER COLUMN id SET DEFAULT nextval('public.progress_reports_id_seq'::regclass);
+  
+  
+  --
+  -- TOC entry 3340 (class 0 OID 16396)
+  -- Dependencies: 209
+  -- Data for Name: administrator_info; Type: TABLE DATA; Schema: public; Owner: user
+  --
+  
+  INSERT INTO public.administrator_info (id, name, email) VALUES (4, 'Katherine Munoz', 'kimunoz@usc.edu');
+  
+  
+  --
+  -- TOC entry 3346 (class 0 OID 16443)
+  -- Dependencies: 215
+  -- Data for Name: mentee_info; Type: TABLE DATA; Schema: public; Owner: postgres
+  --
+  
+  INSERT INTO public.mentee_info (name, usc_id, email, phone_number, major, freshman, semester_entered, meetings, id) VALUES ('Ayushi Mittal', 6894100517, 'ayushimi@usc.edu', 1234567890, 'Computer Engineering and Computer Science', false, 'Fall 2019', 0, 1);
+  
+  
+  --
+  -- TOC entry 3343 (class 0 OID 16410)
+  -- Dependencies: 212
+  -- Data for Name: mentor_info; Type: TABLE DATA; Schema: public; Owner: postgres
+  --
+  
+  INSERT INTO public.mentor_info (id, name, usc_id, email, phone_number, major) VALUES (1, 'Erica De Guzman', 1234567890, 'ed_139@usc.edu', 1234567890, 'Computer Science');
+  
+  
+  --
+  -- TOC entry 3347 (class 0 OID 16456)
+  -- Dependencies: 216
+  -- Data for Name: mentors_mentees; Type: TABLE DATA; Schema: public; Owner: postgres
+  --
+  
+  INSERT INTO public.mentors_mentees (mentee_id, mentor_id) VALUES (1, 1);
+  
+  
+  --
+  -- TOC entry 3345 (class 0 OID 16429)
+  -- Dependencies: 214
+  -- Data for Name: progress_reports; Type: TABLE DATA; Schema: public; Owner: postgres
+  --
+  
+  INSERT INTO public.progress_reports (id, name, mentor_id, session_date, summary, smart_goal, academic_development, career_development, personal_development, additional_info, session_length, seeking_supervision, approved, feedback, mentee_id) VALUES (1, 'Progress Report #1', 1, '2022-05-06', 'This session went well.', 'The SMART Goal was achieved.', 'There is significant academic development', 'The career development isn''t progressing.', 'The personal development is alright.', 'N/A', 60, true, false, NULL, 1);
+  INSERT INTO public.progress_reports (id, name, mentor_id, session_date, summary, smart_goal, academic_development, career_development, personal_development, additional_info, session_length, seeking_supervision, approved, feedback, mentee_id) VALUES (2, 'Progress Report #2', 1, '2022-09-13', 'We had our second meeting!', 'The SMART goal is to sleep more.', 'Ayushi is skipping class.', 'Ayushi has a job!', 'Ayushi is not sleeping.', 'Please advise', 60, true, false, NULL, 1);
+  
+  
+  --
+  -- TOC entry 3359 (class 0 OID 0)
+  -- Dependencies: 210
+  -- Name: administrator_info_id_seq; Type: SEQUENCE SET; Schema: public; Owner: user
+  --
+  
+  SELECT pg_catalog.setval('public.administrator_info_id_seq', 4, true);
+  
+  
+  --
+  -- TOC entry 3360 (class 0 OID 0)
+  -- Dependencies: 217
+  -- Name: mentee_info_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+  --
+  
+  SELECT pg_catalog.setval('public.mentee_info_id_seq', 1, true);
+  
+  
+  --
+  -- TOC entry 3361 (class 0 OID 0)
+  -- Dependencies: 211
+  -- Name: mentor_info_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+  --
+  
+  SELECT pg_catalog.setval('public.mentor_info_id_seq', 1, true);
+  
+  
+  --
+  -- TOC entry 3362 (class 0 OID 0)
+  -- Dependencies: 213
+  -- Name: progress_reports_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+  --
+  
+  SELECT pg_catalog.setval('public.progress_reports_id_seq', 4, true);
+  
+  
+  --
+  -- TOC entry 3190 (class 2606 OID 16402)
+  -- Name: administrator_info administrator_info_pkey; Type: CONSTRAINT; Schema: public; Owner: user
+  --
+  
+  ALTER TABLE ONLY public.administrator_info
+      ADD CONSTRAINT administrator_info_pkey PRIMARY KEY (id);
+  
+  
+  --
+  -- TOC entry 3196 (class 2606 OID 16472)
+  -- Name: mentee_info mentee_info_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+  --
+  
+  ALTER TABLE ONLY public.mentee_info
+      ADD CONSTRAINT mentee_info_pkey PRIMARY KEY (id);
+  
+  
+  --
+  -- TOC entry 3192 (class 2606 OID 16417)
+  -- Name: mentor_info mentor_info_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+  --
+  
+  ALTER TABLE ONLY public.mentor_info
+      ADD CONSTRAINT mentor_info_pkey PRIMARY KEY (id);
+  
+  
+  --
+  -- TOC entry 3194 (class 2606 OID 16437)
+  -- Name: progress_reports progress_reports_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+  --
+  
+  ALTER TABLE ONLY public.progress_reports
+      ADD CONSTRAINT progress_reports_pkey PRIMARY KEY (id);
+  
+  
+  --
+  -- TOC entry 3200 (class 2606 OID 16479)
+  -- Name: mentors_mentees fk_mentee; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+  --
+  
+  ALTER TABLE ONLY public.mentors_mentees
+      ADD CONSTRAINT fk_mentee FOREIGN KEY (mentee_id) REFERENCES public.mentee_info(id);
+  
+  
+  --
+  -- TOC entry 3198 (class 2606 OID 16484)
+  -- Name: progress_reports fk_mentee; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+  --
+  
+  ALTER TABLE ONLY public.progress_reports
+      ADD CONSTRAINT fk_mentee FOREIGN KEY (mentee_id) REFERENCES public.mentee_info(id);
+  
+  
+  --
+  -- TOC entry 3197 (class 2606 OID 16438)
+  -- Name: progress_reports fk_mentor; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+  --
+  
+  ALTER TABLE ONLY public.progress_reports
+      ADD CONSTRAINT fk_mentor FOREIGN KEY (mentor_id) REFERENCES public.mentor_info(id);
+  
+  
+  --
+  -- TOC entry 3199 (class 2606 OID 16464)
+  -- Name: mentors_mentees fk_mentor; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+  --
+  
+  ALTER TABLE ONLY public.mentors_mentees
+      ADD CONSTRAINT fk_mentor FOREIGN KEY (mentor_id) REFERENCES public.mentor_info(id);
+  
+  
+  -- Completed on 2022-09-13 22:58:34
+  
+  --
+  -- PostgreSQL database dump complete
+  --
+  `);
+};
 
 async function select_table(name) {
   const result = await client.query(`SELECT * from ${name};`);
@@ -85,10 +442,24 @@ app.get('/', function (req, res) {
 });
 app.listen(process.env.PORT || 3000, async function () {
   console.log('Example app listening on port 3000!');
-  client = new pg.Client(conString);
+  client = new pg.Client({
+    connectionString: conString,
+    ssl: {
+      rejectUnauthorized: false
+    }
+  });
   await client.connect();
   console.log("client connected")
 });
+
+/*
+  http://localhost:3000/create_db
+*/
+app.get('/create_db', async function (req, res) {
+  await create_db();
+  var result = await select_table("administrator_info");
+  res.send(result); 
+})
 
 app.get('/select', async function (req, res) {
   var table_name = req.query.table_name;
