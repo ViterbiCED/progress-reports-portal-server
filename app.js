@@ -420,18 +420,17 @@ async function check_value_exists(table_name, column_name, value) {
 }
 
 async function get_user_roles(email) {
-  var role = [];
+  var role;
   if (await check_value_exists("administrator_info", "email", email)) {
-    role.push("administrator");
+    role = "administrator";
   }
   if (await check_value_exists("mentor_info", "email", email)) {
-    console.log("pushing mentor")
-    role.push("mentor");
+    role = "mentor";
   }
   if (await check_value_exists("mentee_info", "email", email)) {
-    role.push("mentee");
+    role = "mentee";
   }
-  return JSON.stringify({"role": role[0]});
+  return JSON.stringify({"role": role});
 };
 
 
