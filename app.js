@@ -431,7 +431,7 @@ async function get_user_roles(email) {
   if (await check_value_exists("mentee_info", "email", email)) {
     role.push("mentee");
   }
-  return { "role": role };
+  return role;
 };
 
 
