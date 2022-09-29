@@ -12,10 +12,33 @@ async function select_table(name) {
   return result.rows;
 };
 
+async function add_admin(name, email) {
+  await client.query(`INSERT INTO administrator_info (name, email)
+                      VALUES ('${name}', '${email}');`);
+
+};
+
 async function add_mentor(name, usc_id, email, phone_number, major) {
   await client.query(`INSERT INTO mentor_info (name, usc_id, email, phone_number, major)
                       VALUES ('${name}', '${usc_id}', '${email}', '${phone_number}', '${major}');`);
 };
+
+async function add_mentee(name, usc_id, email, phone_number, major, freshman, semester_entered) {
+  await client.query(`INSERT INTO mentee_info(name, usc_id, email, phone_number, major, freshman, semester_entered)
+                      VALUES ('${name}', '${usc_id}', '${email}', '${phone_number}', '${major}', '${freshman}', '${semester_entered}');`);
+};
+
+async function get_mentees_of_mentor_name(name) {
+  var result = await client.query(`SELECT mentee_info.name FROM mentee_info, mentors_mentees, mentor_info
+                      WHERE mentor_info.name = '${name}' AND mentors_mentees.mentor_id = mentor_info.id AND mentors_mentees.mentee_id = mentee_info.id;`);
+  return result.rows;
+}
+
+async function get_mentees_of_mentor_id(id) {
+  var result = await client.query(`SELECT mentee_info.name FROM mentee_info, mentors_mentees, mentor_info
+                      WHERE mentor_info.id = ${id} AND mentors_mentees.mentor_id = mentor_info.id AND mentors_mentees.mentee_id = mentee_info.id;`);
+  return result.rows;
+}
 
 async function add_progress_report(name, mentor_id, mentee_id, session_date, summary, smart_goal, academic_development, career_development, personal_development, additional_info, session_length, seeking_supervision) {
   await client.query(`INSERT INTO progress_reports(name, mentor_id, mentee_id, session_date, summary, smart_goal, academic_development, career_development, personal_development, additional_info, session_length, seeking_supervision)
@@ -74,6 +97,15 @@ app.get('/select', async function (req, res) {
 });
 
 /*
+  http://localhost:3000/add_admin?name=AdminTest&email=admin@usc.edu
+*/
+app.get('/add_admin', async function (req, res) {
+  await add_admin(req.query.name, req.query.email);
+  var result = await select_table("administrator_info");
+  res.send(result);
+})
+
+/*
   http://localhost:3000/add_mentor?name=Sushi&usc_id=123456&email=sushi@usc.edu&phone_number=1234567&major=Cooking
 */
 app.get('/add_mentor', async function (req, res) {
@@ -81,6 +113,31 @@ app.get('/add_mentor', async function (req, res) {
   var result = await select_table("mentor_info");
   res.send(result);
 });
+
+/*
+  http://localhost:3000/add_mentee?name=Test_Mentee&usc_id=543210&email=test@usc.edu&phone_number=98765432&major=Debugging&freshman=True&semester_entered=Fall_2022
+*/
+app.get('/add_mentee', async function (req, res) {
+  await add_mentee(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major, req.query.freshman, req.query.semester_entered);
+  var result = await select_table("mentee_info");
+  res.send(result);
+});
+
+/*
+  http://localhost:3000/get_mentees_of_mentor_name?name=Erica De Guzman
+*/
+app.get('/get_mentees_of_mentor_name', async function (req, res) {
+  var result = await get_mentees_of_mentor_name(req.query.name);
+  res.send(result);
+});
+
+/*
+  http://localhost:3000/get_mentees_of_mentor_id?id=1
+*/
+app.get('/get_mentees_of_mentor_id', async function (req, res) {
+  var result = await get_mentees_of_mentor_id(req.query.id);
+  res.send(result);
+})
 
 /*
   http://localhost:3000/add_progress_report?name=ProgReport&mentor_id=1&mentee_id=1&session_date=2012-08-01&summary=SUMMARY&smart_goal=SMART_GOAL&academic_development=ACADEMIC_DEVELOPMENT&career_development=CAREER_DEVELOPMENT&personal_development=PERSONAL_DEVELOPMENT&additional_info=ADDITIONAL_INFO&session_length=45&seeking_supervision=true
