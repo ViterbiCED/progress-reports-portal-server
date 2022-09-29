@@ -540,7 +540,7 @@ app.get('/find_progress_reports_by_id', async function (req, res) {
 */
 app.get('/get_user_roles', async function (req, res) {
   var result = await get_user_roles(req.query.email)
-  res.setHeader('Access-Control-Allow-Origin', 'https://progress-reports-portal-node.herokuapp.com');
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
   res.setHeader('Access-Control-Allow-Credentials', true);
