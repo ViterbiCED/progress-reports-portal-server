@@ -3,7 +3,8 @@ var app = express();
 
 var pg = require('pg');
 
-var conString = "postgres://nixuzeblmabtrz:73c7332581b166a9d5428507c45b2bb8631b9306f70cda332a7261e96f9cafce@ec2-44-195-132-31.compute-1.amazonaws.com:5432/d712mgqm0188ks";
+// var conString = "postgres://nixuzeblmabtrz:73c7332581b166a9d5428507c45b2bb8631b9306f70cda332a7261e96f9cafce@ec2-44-195-132-31.compute-1.amazonaws.com:5432/d712mgqm0188ks";
+var conString = process.env.DATABASE_URL;
 var client;
 
 async function create_db() {
