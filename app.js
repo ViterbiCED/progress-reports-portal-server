@@ -417,7 +417,7 @@ async function find_progress_reports_by_id(mentor_id, mentee_id) {
 
 async function check_value_exists(table_name, column_name, value) {
   var result = await client.query(`SELECT EXISTS(SELECT 1 FROM ${table_name} WHERE ${column_name} = '${value}');`);
-  return result.rows[0].exists;
+  return {"exists": result.rows[0].exists};
 }
 
 async function get_user_roles(email) {
@@ -431,14 +431,21 @@ async function get_user_roles(email) {
   if (await check_value_exists("mentee_info", "email", email)) {
     role = "mentee";
   }
-  return JSON.stringify({"role": role});
+  return {"role": role};
 };
 
 async function get_user_info(id, role) {
   var result = await client.query(`SELECT * FROM ${role}_info WHERE id = ${id};`);
-  return JSON.stringify(result.rows[0])
+  return result.rows[0];
 }
 
+function send_res(res, result) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.send(JSON.stringify(result))
+}
 
 app.get('/', function (req, res) {
   res.send('Hello World!');
@@ -467,7 +474,7 @@ app.get('/create_db', async function (req, res) {
 app.get('/select_table', async function (req, res) {
   var table_name = req.query.table_name;
   var result = await select_table(table_name);
-  res.send(result);
+  send_res(res, result);
 });
 
 /*
@@ -538,16 +545,13 @@ app.get('/find_progress_reports_by_id', async function (req, res) {
   res.send(result);
 });
 
+
 /*
   http://localhost:3000/get_user_roles?email=ayushimi@usc.edu
 */
 app.get('/get_user_roles', async function (req, res) {
   var result = await get_user_roles(req.query.email)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-  res.setHeader('Access-Control-Allow-Credentials', true);
-    res.send(result);
+  send_res(res, result);
 });
 
 
@@ -556,9 +560,5 @@ app.get('/get_user_roles', async function (req, res) {
 */
 app.get('/get_user_info', async function (req, res) {
   var result = await get_user_info(req.query.id, req.query.role)
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-  res.setHeader('Access-Control-Allow-Credentials', true);
-    res.send(result);
+  send_res(res, result);
 });
