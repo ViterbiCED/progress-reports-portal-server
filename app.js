@@ -555,7 +555,7 @@ app.get('/get_user_roles', async function (req, res) {
   http://localhost:3000/get_user_info?id=1&role=mentor
 */
 app.get('/get_user_info', async function (req, res) {
-  var result = await get_user_roles(req.query.id, req.query.role)
+  var result = await get_user_info(req.query.id, req.query.role)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
