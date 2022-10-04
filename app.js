@@ -417,7 +417,7 @@ async function find_progress_reports_by_id(mentor_id, mentee_id) {
 
 async function check_value_exists(table_name, column_name, value) {
   var result = await client.query(`SELECT EXISTS(SELECT 1 FROM ${table_name} WHERE ${column_name} = '${value}');`);
-  return {"exists": result.rows[0].exists};
+  return result.rows[0].exists;
 }
 
 async function get_user_roles(email) {
