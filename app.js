@@ -421,7 +421,7 @@ async function check_value_exists(table_name, column_name, value) {
 }
 
 async function get_user_roles(email) {
-  var role;
+  var role = "invalid";
   if (await check_value_exists("administrator_info", "email", email)) {
     role = "administrator";
   }
