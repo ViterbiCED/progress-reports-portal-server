@@ -468,7 +468,7 @@ app.listen(process.env.PORT || 3000, async function () {
 app.get('/create_db', async function (req, res) {
   await create_db();
   var result = await select_table("administrator_info");
-  res.send(result); 
+  send_res(res, result);
 })
 
 app.get('/select_table', async function (req, res) {
@@ -483,7 +483,7 @@ app.get('/select_table', async function (req, res) {
 app.get('/add_admin', async function (req, res) {
   await add_admin(req.query.name, req.query.email);
   var result = await select_table("administrator_info");
-  res.send(result);
+  send_res(res, result);
 })
 
 /*
@@ -492,7 +492,7 @@ app.get('/add_admin', async function (req, res) {
 app.get('/add_mentor', async function (req, res) {
   await add_mentor(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major);
   var result = await select_table("mentor_info");
-  res.send(result);
+  send_res(res, result);
 });
 
 /*
@@ -501,7 +501,7 @@ app.get('/add_mentor', async function (req, res) {
 app.get('/add_mentee', async function (req, res) {
   await add_mentee(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major, req.query.freshman, req.query.semester_entered);
   var result = await select_table("mentee_info");
-  res.send(result);
+  send_res(res, result);
 });
 
 /*
@@ -509,7 +509,7 @@ app.get('/add_mentee', async function (req, res) {
 */
 app.get('/get_mentees_of_mentor_name', async function (req, res) {
   var result = await get_mentees_of_mentor_name(req.query.name);
-  res.send(result);
+  send_res(res, result);
 });
 
 /*
@@ -517,7 +517,7 @@ app.get('/get_mentees_of_mentor_name', async function (req, res) {
 */
 app.get('/get_mentees_of_mentor_id', async function (req, res) {
   var result = await get_mentees_of_mentor_id(req.query.id);
-  res.send(result);
+  send_res(res, result);
 })
 
 /*
@@ -526,7 +526,7 @@ app.get('/get_mentees_of_mentor_id', async function (req, res) {
 app.get('/add_progress_report', async function (req, res) {
   await add_progress_report(req.query.name, req.query.mentor_id, req.query.mentee_id, req.query.session_date, req.query.summary, req.query.smart_goal, req.query.academic_development, req.query.career_development, req.query.personal_development, req.query.additional_info, req.query.session_length, req.query.seeking_supervision);
   var result = await select_table("progress_reports");
-  res.send(result);
+  send_res(res, result);
 });
 
 /*
@@ -534,7 +534,7 @@ app.get('/add_progress_report', async function (req, res) {
 */
 app.get('/find_progress_reports_by_name', async function (req, res) {
   var result = await find_progress_reports_by_name(req.query.mentor_name, req.query.mentee_name)
-  res.send(result);
+  send_res(res, result);
 });
 
 /*
@@ -542,7 +542,7 @@ app.get('/find_progress_reports_by_name', async function (req, res) {
 */
 app.get('/find_progress_reports_by_id', async function (req, res) {
   var result = await find_progress_reports_by_id(req.query.mentor_id, req.query.mentee_id)
-  res.send(result);
+  send_res(res, result);
 });
 
 
