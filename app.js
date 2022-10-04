@@ -424,11 +424,9 @@ async function get_user_roles(email) {
   var role = "invalid";
   if (await check_value_exists("administrator_info", "email", email)) {
     role = "administrator";
-  }
-  if (await check_value_exists("mentor_info", "email", email)) {
+  } else if (await check_value_exists("mentor_info", "email", email)) {
     role = "mentor";
-  }
-  if (await check_value_exists("mentee_info", "email", email)) {
+  } else if (await check_value_exists("mentee_info", "email", email)) {
     role = "mentee";
   }
   return {"role": role};
