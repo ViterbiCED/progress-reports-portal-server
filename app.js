@@ -255,10 +255,6 @@ async function search_users(column_name, search_term) {
   };
 };
 
-// async function deactivate_mentorship(mentor_id, mentee_id) {
-//   await client.query(`UPDATE mentors_mentees FROM ${role}_info WHERE id = ${id};`);
-// }
-
 async function remove_admin(id) {
   await client.query(`DELETE FROM administrator_info WHERE id = ${id};`);
 }
@@ -372,7 +368,6 @@ app.get('/find_progress_reports_by_id', async function (req, res) {
   send_res(res, result);
 });
 
-
 /*
   http://localhost:3000/get_user_roles?email=ayushimi@usc.edu
 */
@@ -380,7 +375,6 @@ app.get('/get_user_roles', async function (req, res) {
   var result = await get_user_roles(req.query.email)
   send_res(res, result);
 });
-
 
 /*
   http://localhost:3000/get_user_info?id=1&role=mentor
