@@ -252,7 +252,7 @@ async function search_users_of_table(role, column_name, search_term) {
 }
 
 async function search_users(column_name, search_term) {
-  return search_users_of_table("mentors", column_name, search_term);
+  return search_users_of_table("mentor", column_name, search_term);
 };
 
 // async function deactivate_mentorship(mentor_id, mentee_id) {
