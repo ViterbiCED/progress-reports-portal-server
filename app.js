@@ -242,19 +242,17 @@ async function get_user_info(id, role) {
 }
 
 async function search_users_of_table(role, column_name, search_term) {
-  console.log(`SELECT id FROM ${role}_info WHERE ${column_name} LIKE '%${search_term}%';`)
-  var result = await client.query(`SELECT id FROM ${role}_info
+  var result = await client.query(`SELECT id, name FROM ${role}_info
                     WHERE ${column_name} LIKE '%${search_term}%';`);
-  console.log(result.rows)
   return result.rows;
 }
 
 async function search_users(column_name, search_term) {
-  var result = {
-    "mentors": search_users_of_table("mentor", column_name, search_term)
+  return {
+    "mentors": await search_users_of_table("mentor", column_name, search_term),
+    "mentees": await search_users_of_table("mentee", column_name, search_term),
+    "administrators": await search_users_of_table("administrator", column_name, search_term)
   };
-  console.log(result)
-  return result
 };
 
 // async function deactivate_mentorship(mentor_id, mentee_id) {
