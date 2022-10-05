@@ -245,6 +245,7 @@ async function search_users_of_table(role, column_name, search_term) {
   console.log(`SELECT id FROM ${role}_info WHERE ${column_name} LIKE '%${search_term}%';`)
   var result = await client.query(`SELECT id FROM ${role}_info
                     WHERE ${column_name} LIKE '%${search_term}%';`);
+  console.log(result.rows)
   return result.rows;
 }
 
