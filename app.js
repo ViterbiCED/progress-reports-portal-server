@@ -247,7 +247,7 @@ async function search_users_of_table(role, column_name, search_term) {
   var result = await client.query(`SELECT id FROM ${role}_info
                     WHERE ${role}_info.${column_name} LIKE '%${search_term}%';`);
   for (row in result.rows) {
-    users.push(row.id)
+    user_ids.push(row.id)
   }
   return user_ids;
 }
