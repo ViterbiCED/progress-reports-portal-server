@@ -3,7 +3,6 @@ var app = express();
 
 var pg = require('pg');
 
-// var conString = "postgres://nixuzeblmabtrz:73c7332581b166a9d5428507c45b2bb8631b9306f70cda332a7261e96f9cafce@ec2-44-195-132-31.compute-1.amazonaws.com:5432/d712mgqm0188ks";
 var conString = process.env.DATABASE_URL;
 var client;
 
@@ -421,6 +420,21 @@ async function check_value_exists(table_name, column_name, value) {
   return result.rows[0].exists;
 }
 
+async function search_users_of_table(role, column_name, search_term) {
+  var users = {};
+  var result = await client.query(`SELECT id FROM ${role}_info
+                    WHERE ${table_name}_info.${column_name} LIKE '%${search_term}%';`);
+  for (row in result.rows) {
+    Object.assign(users, {role: rows[0].id})
+  }
+  return users;
+}
+
+async function search_users(column_name, search_term) {
+  return search_users_of_table(mentors, column_name, search_term);
+};
+
+
 async function get_user_roles(email) {
   var role = "invalid";
   if (await check_value_exists("administrator_info", "email", email)) {
@@ -561,3 +575,12 @@ app.get('/get_user_info', async function (req, res) {
   var result = await get_user_info(req.query.id, req.query.role)
   send_res(res, result);
 });
+
+/*
+  http://localhost:3000/get_user_info?id=1&role=mentor
+*/
+app.get('/search_users_by_name', async function (req, res) {
+  var result = await search_users("name", req.query.name)
+  send_res(res, result);
+});
+
