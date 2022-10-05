@@ -242,13 +242,14 @@ async function get_user_info(id, role) {
 }
 
 async function search_users_of_table(role, column_name, search_term) {
-  var users = [];
+  var user_ids = [];
+  // var role_ids = `${role}_ids`;
   var result = await client.query(`SELECT id FROM ${role}_info
                     WHERE ${role}_info.${column_name} LIKE '%${search_term}%';`);
   for (row in result.rows) {
-    users.push({"role": role, "id": row[0].id})
+    users.push(row.id)
   }
-  return users;
+  return user_ids;
 }
 
 async function search_users(column_name, search_term) {
