@@ -399,6 +399,14 @@ app.get('/search_users_by_name', async function (req, res) {
 });
 
 /*
+  http://localhost:3000/search_users_by_email?email=yus
+*/
+app.get('/search_users_by_email', async function (req, res) {
+  var result = await search_users("email", req.query.email)
+  send_res(res, result);
+});
+
+/*
   http://localhost:3000/remove_admin?id=5
 */
 app.get('/remove_admin', async function (req, res) {
