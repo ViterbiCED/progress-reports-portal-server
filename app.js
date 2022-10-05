@@ -121,7 +121,8 @@ async function create_db() {
   
   CREATE TABLE public.mentors_mentees (
       mentee_id integer,
-      mentor_id integer
+      mentor_id integer,
+      active boolean DEFAULT true
   );
   
   --
@@ -388,13 +389,13 @@ async function add_mentee(name, usc_id, email, phone_number, major, freshman, se
 
 async function get_mentees_of_mentor_name(name) {
   var result = await client.query(`SELECT mentee_info.name FROM mentee_info, mentors_mentees, mentor_info
-                      WHERE mentor_info.name = '${name}' AND mentors_mentees.mentor_id = mentor_info.id AND mentors_mentees.mentee_id = mentee_info.id;`);
+                      WHERE mentor_info.name = '${name}' AND mentors_mentees.mentor_id = mentor_info.id AND mentors_mentees.mentee_id = mentee_info.id AND mentors_mentees.active = true;`);
   return result.rows;
 }
 
 async function get_mentees_of_mentor_id(id) {
   var result = await client.query(`SELECT mentee_info.name FROM mentee_info, mentors_mentees, mentor_info
-                      WHERE mentor_info.id = ${id} AND mentors_mentees.mentor_id = mentor_info.id AND mentors_mentees.mentee_id = mentee_info.id;`);
+                      WHERE mentor_info.id = ${id} AND mentors_mentees.mentor_id = mentor_info.id AND mentors_mentees.mentee_id = mentee_info.id AND mentors_mentees.active = true;`);
   return result.rows;
 }
 
