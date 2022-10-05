@@ -396,7 +396,7 @@ app.get('/get_user_info', async function (req, res) {
 */
 app.get('/search_users_by_name', async function (req, res) {
   var result = await search_users("name", req.query.name)
-  send_res(res, result);
+  res.send(result)
 });
 
 /*
