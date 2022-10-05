@@ -8,11 +8,11 @@ var client;
 
 async function create_db() {
   await client.query(`
-  DROP TABLE public.mentee_info
-  DROP TABLE public.mentor_info
-  DROP TABLE public.administrator_info
-  DROP TABLE public.mentors_mentees
-  DROP TABLE public.progress_reports
+  DROP TABLE if EXISTS public.mentee_info;
+  DROP TABLE if EXISTS public.mentor_info;
+  DROP TABLE if EXISTS public.administrator_info;
+  DROP TABLE if EXISTS public.mentors_mentees;
+  DROP TABLE if EXISTS public.progress_reports;
 
   CREATE TABLE public.mentee_info (
     name character varying NOT NULL,
