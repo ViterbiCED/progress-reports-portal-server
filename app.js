@@ -259,6 +259,22 @@ async function remove_admin(id) {
   await client.query(`DELETE FROM administrator_info WHERE id = ${id};`);
 }
 
+async function deactivate_mentorship(mentor_id, mentee_id) {
+  await client.query(`UPDATE mentors_mentees SET active = FALSE WHERE mentor_id = ${mentor_id} AND mentee_id = ${mentee_id};`);
+}
+
+async function deactivate_mentorship_by_mentor(mentor_id) {
+  await client.query(`UPDATE mentors_mentees SET active = FALSE WHERE mentor_id = ${mentor_id};`);
+}
+
+async function activate_mentorship(mentor_id, mentee_id) {
+  await client.query(`UPDATE mentors_mentees SET active = TRUE WHERE mentor_id = ${mentor_id} AND mentee_id = ${mentee_id};`);
+}
+
+async function activate_mentorship_by_mentor(mentor_id) {
+  await client.query(`UPDATE mentors_mentees SET active = TRUE WHERE mentor_id = ${mentor_id};`);
+}
+
 
 // ===== API CALLS ======
 
@@ -408,3 +424,35 @@ app.get('/remove_admin', async function (req, res) {
   var result = await select_table("administrator_info");
   send_res(res, result);
 })
+
+/*
+  http://localhost:3000/deactivate_mentor_mentee?mentor_id=1&mentee_id=1
+*/
+app.get('/deactivate_mentor_mentee', async function (req, res) {
+  var result = await deactivate_mentorship(req.query.mentor_id, req.query.mentee_id);
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/deactivate_mentor_mentee?mentor_id=1
+*/
+app.get('/deactivate_mentorship_mentor', async function (req, res) {
+  var result = await deactivate_mentorship_by_mentor(req.query.mentor_id);
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/activate_mentor_mentee?mentor_id=1&mentee_id=1
+*/
+app.get('/activate_mentor_mentee', async function (req, res) {
+  var result = await activate_mentorship(req.query.mentor_id, req.query.mentee_id);
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/activate_mentor_mentee?mentor_id=1
+*/
+app.get('/activate_mentorship_mentor', async function (req, res) {
+  var result = await activate_mentorship_by_mentor(req.query.mentor_id);
+  send_res(res, result);
+});
