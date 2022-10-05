@@ -243,7 +243,7 @@ async function get_user_info(id, role) {
 
 async function search_users_of_table(role, column_name, search_term) {
   var result = await client.query(`SELECT id, name FROM ${role}_info
-                    WHERE ${column_name} LIKE '%${search_term}%';`);
+                    WHERE LOWER(${column_name}) LIKE '%${search_term.toLowerCase()}%';`);
   return result.rows;
 }
 
