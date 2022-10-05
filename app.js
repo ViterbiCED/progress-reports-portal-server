@@ -242,18 +242,15 @@ async function get_user_info(id, role) {
 }
 
 async function search_users_of_table(role, column_name, search_term) {
-  var user_ids = [];
-  // var role_ids = `${role}_ids`;
   var result = await client.query(`SELECT id FROM ${role}_info
-                    WHERE ${role}_info.${column_name} LIKE '%${search_term}%';`);
-  for (row in result.rows) {
-    user_ids.push(row.id)
-  }
-  return user_ids;
+                    WHERE ${column_name} LIKE '%${search_term}%';`);
+  return result.rows;
 }
 
 async function search_users(column_name, search_term) {
-  return search_users_of_table("mentor", column_name, search_term);
+  return {
+    "mentors": search_users_of_table("mentor", column_name, search_term)
+  };
 };
 
 // async function deactivate_mentorship(mentor_id, mentee_id) {
@@ -396,7 +393,7 @@ app.get('/get_user_info', async function (req, res) {
 */
 app.get('/search_users_by_name', async function (req, res) {
   var result = await search_users("name", req.query.name)
-  res.send(result)
+  send_res(res, result);
 });
 
 /*
