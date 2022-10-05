@@ -250,9 +250,11 @@ async function search_users_of_table(role, column_name, search_term) {
 }
 
 async function search_users(column_name, search_term) {
-  return {
+  var result = {
     "mentors": search_users_of_table("mentor", column_name, search_term)
   };
+  console.log(result)
+  return result
 };
 
 // async function deactivate_mentorship(mentor_id, mentee_id) {
