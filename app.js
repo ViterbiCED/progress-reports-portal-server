@@ -241,18 +241,10 @@ async function get_user_info(id, role) {
   return result.rows[0];
 }
 
-function send_res(res, result) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.send(JSON.stringify(result))
-}
-
 async function search_users_of_table(role, column_name, search_term) {
   var users = {};
   var result = await client.query(`SELECT id FROM ${role}_info
-                    WHERE ${table_name}_info.${column_name} LIKE '%${search_term}%';`);
+                    WHERE ${role}_info.${column_name} LIKE '%${search_term}%';`);
   for (row in result.rows) {
     Object.assign(users, {role: rows[0].id})
   }
@@ -266,6 +258,21 @@ async function search_users(column_name, search_term) {
 // async function deactivate_mentorship(mentor_id, mentee_id) {
 //   await client.query(`UPDATE mentors_mentees FROM ${role}_info WHERE id = ${id};`);
 // }
+
+async function remove_admin(id) {
+  await client.query(`DELETE FROM administrator_info WHERE id = ${id};`);
+}
+
+
+// ===== API CALLS ======
+
+function send_res(res, result) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.send(JSON.stringify(result))
+}
 
 app.get('/', function (req, res) {
   res.send('Hello World!');
@@ -384,10 +391,18 @@ app.get('/get_user_info', async function (req, res) {
 });
 
 /*
-  http://localhost:3000/get_user_info?id=1&role=mentor
+  http://localhost:3000/search_users_by_name?name=Eric
 */
 app.get('/search_users_by_name', async function (req, res) {
   var result = await search_users("name", req.query.name)
   send_res(res, result);
 });
 
+/*
+  http://localhost:3000/remove_admin?id=5
+*/
+app.get('/remove_admin', async function (req, res) {
+  await remove_admin(req.query.id);
+  var result = await select_table("administrator_info");
+  send_res(res, result);
+})
