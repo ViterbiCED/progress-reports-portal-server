@@ -8,11 +8,27 @@ var client;
 
 async function create_db() {
   await client.query(`
+  DROP TABLE if EXISTS public.mentors_mentees;
+  DROP TABLE if EXISTS public.progress_reports;
   DROP TABLE if EXISTS public.mentee_info;
   DROP TABLE if EXISTS public.mentor_info;
   DROP TABLE if EXISTS public.administrator_info;
-  DROP TABLE if EXISTS public.mentors_mentees;
-  DROP TABLE if EXISTS public.progress_reports;
+
+  CREATE TABLE public.administrator_info (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    email character varying NOT NULL
+  );
+
+  CREATE SEQUENCE public.administrator_info_id_seq
+      AS integer
+      START WITH 1
+      INCREMENT BY 1
+      NO MINVALUE
+      NO MAXVALUE
+      CACHE 1;
+
+  ALTER SEQUENCE public.administrator_info_id_seq OWNED BY public.administrator_info.id;
 
   CREATE TABLE public.mentee_info (
     name character varying NOT NULL,
@@ -25,8 +41,6 @@ async function create_db() {
     meetings integer DEFAULT 0 NOT NULL,
     id integer NOT NULL
   );
-
-  ALTER TABLE public.mentee_info OWNER TO postgres;
 
   CREATE SEQUENCE public.mentee_info_id_seq
       AS integer
