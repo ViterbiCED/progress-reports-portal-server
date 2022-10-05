@@ -224,21 +224,6 @@ async function check_value_exists(table_name, column_name, value) {
   return result.rows[0].exists;
 }
 
-async function search_users_of_table(role, column_name, search_term) {
-  var users = {};
-  var result = await client.query(`SELECT id FROM ${role}_info
-                    WHERE ${table_name}_info.${column_name} LIKE '%${search_term}%';`);
-  for (row in result.rows) {
-    Object.assign(users, {role: rows[0].id})
-  }
-  return users;
-}
-
-async function search_users(column_name, search_term) {
-  return search_users_of_table(mentors, column_name, search_term);
-};
-
-
 async function get_user_roles(email) {
   var role = "invalid";
   if (await check_value_exists("administrator_info", "email", email)) {
@@ -263,6 +248,24 @@ function send_res(res, result) {
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.send(JSON.stringify(result))
 }
+
+async function search_users_of_table(role, column_name, search_term) {
+  var users = {};
+  var result = await client.query(`SELECT id FROM ${role}_info
+                    WHERE ${table_name}_info.${column_name} LIKE '%${search_term}%';`);
+  for (row in result.rows) {
+    Object.assign(users, {role: rows[0].id})
+  }
+  return users;
+}
+
+async function search_users(column_name, search_term) {
+  return search_users_of_table("mentors", column_name, search_term);
+};
+
+// async function deactivate_mentorship(mentor_id, mentee_id) {
+//   await client.query(`UPDATE mentors_mentees FROM ${role}_info WHERE id = ${id};`);
+// }
 
 app.get('/', function (req, res) {
   res.send('Hello World!');
