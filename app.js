@@ -276,6 +276,12 @@ async function activate_mentorship_by_mentor(mentor_id) {
   await client.query(`UPDATE mentors_mentees SET active = TRUE WHERE mentor_id = ${mentor_id};`);
 }
 
+async function get_active_mentee_ids() {
+  var result = await client.query(`SELECT mentee_id FROM mentors_mentees WHERE active = true;`);
+  return result.rows;
+}
+
+
 
 // ===== API CALLS ======
 
@@ -455,5 +461,13 @@ app.get('/activate_mentor_mentee', async function (req, res) {
 */
 app.get('/activate_mentorship_mentor', async function (req, res) {
   var result = await activate_mentorship_by_mentor(req.query.mentor_id);
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/get_active_mentee_ids
+*/
+app.get('/get_active_mentee_ids', async function (req, res) {
+  var result = await get_active_mentee_ids();
   send_res(res, result);
 });
