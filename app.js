@@ -288,7 +288,7 @@ async function get_active_mentorships() {
 
 async function get_mentor_of_mentee_id(id) {
   var result = await client.query(`SELECT mentor_id FROM mentors_mentees WHERE mentee_id = ${id};`);
-  return result.rows[0].mentor_id;
+  return result.rows[0];
 }
 
 
