@@ -4,6 +4,7 @@ var app = express();
 var pg = require('pg');
 
 var conString = process.env.DATABASE_URL;
+var conString = "postgres://zxcvatghlmrxwm:f97710d59a7f20aa2ebaf2695a85b90ac8eece051f48edab0409eb497d983473@ec2-18-204-36-213.compute-1.amazonaws.com:5432/db9khoebffecb";
 var client;
 
 async function create_db() {
