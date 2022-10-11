@@ -335,8 +335,10 @@ app.get('/create_db', async function (req, res) {
 })
 
 app.get('/select_table', async function (req, res) {
-  var table_name = req.query.table_name;
-  var result = await select_table(table_name);
+  var result = null;
+  if (check_query_params(req.query, ["table_name"])) {
+    result = await select_table(table_name);
+  }
   send_res(res, result);
 });
 
@@ -344,8 +346,11 @@ app.get('/select_table', async function (req, res) {
   http://localhost:3000/add_admin?name=AdminTest&email=admin@usc.edu
 */
 app.get('/add_admin', async function (req, res) {
-  await add_admin(req.query.name, req.query.email);
-  var result = await select_table("administrator_info");
+  var result = null;
+  if (check_query_params(req.query, ["name", "email"])) {
+    await add_admin(req.query.name, req.query.email);
+    result = await select_table("administrator_info");
+  }
   send_res(res, result);
 })
 
@@ -353,8 +358,11 @@ app.get('/add_admin', async function (req, res) {
   http://localhost:3000/add_mentor?name=Sushi&usc_id=123456&email=sushi@usc.edu&phone_number=1234567&major=Cooking
 */
 app.get('/add_mentor', async function (req, res) {
-  await add_mentor(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major);
-  var result = await select_table("mentor_info");
+  var result = null;
+  if (check_query_params(req.query, ["name", "usc_id", "email", "phone_number", "major"])) {
+    await add_mentor(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major);
+    result = await select_table("mentor_info");
+  }
   send_res(res, result);
 });
 
@@ -362,8 +370,11 @@ app.get('/add_mentor', async function (req, res) {
   http://localhost:3000/add_mentee?name=Test_Mentee&usc_id=543210&email=test@usc.edu&phone_number=98765432&major=Debugging&freshman=True&semester_entered=Fall_2022
 */
 app.get('/add_mentee', async function (req, res) {
-  await add_mentee(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major, req.query.freshman, req.query.semester_entered);
-  var result = await select_table("mentee_info");
+  var result = null;
+  if (check_query_params(req.query, ["name", "usc_id", "email", "phone_number", "major", "freshman", "semester_entered"])) {
+    await add_mentee(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major, req.query.freshman, req.query.semester_entered);
+    result = await select_table("mentee_info");
+  }
   send_res(res, result);
 });
 
@@ -371,7 +382,10 @@ app.get('/add_mentee', async function (req, res) {
   http://localhost:3000/get_mentees_of_mentor_name?name=Erica De Guzman
 */
 app.get('/get_mentees_of_mentor_name', async function (req, res) {
-  var result = await get_mentees_of_mentor_name(req.query.name);
+  var result = null;
+  if (check_query_params(req.query, ["name"])) {
+    result = await get_mentees_of_mentor_name(req.query.name);
+  }
   send_res(res, result);
 });
 
@@ -379,7 +393,10 @@ app.get('/get_mentees_of_mentor_name', async function (req, res) {
   http://localhost:3000/get_mentees_of_mentor_id?id=1
 */
 app.get('/get_mentees_of_mentor_id', async function (req, res) {
-  var result = await get_mentees_of_mentor_id(req.query.id);
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    result = await get_mentees_of_mentor_id(req.query.id);
+  }
   send_res(res, result);
 })
 
