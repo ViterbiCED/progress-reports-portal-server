@@ -404,8 +404,11 @@ app.get('/get_mentees_of_mentor_id', async function (req, res) {
   http://localhost:3000/add_progress_report?name=ProgReport&mentor_id=1&mentee_id=1&session_date=2012-08-01&summary=SUMMARY&smart_goal=SMART_GOAL&academic_development=ACADEMIC_DEVELOPMENT&career_development=CAREER_DEVELOPMENT&personal_development=PERSONAL_DEVELOPMENT&additional_info=ADDITIONAL_INFO&session_length=45&seeking_supervision=true
 */
 app.get('/add_progress_report', async function (req, res) {
-  await add_progress_report(req.query.name, req.query.mentor_id, req.query.mentee_id, req.query.session_date, req.query.summary, req.query.smart_goal, req.query.academic_development, req.query.career_development, req.query.personal_development, req.query.additional_info, req.query.session_length, req.query.seeking_supervision);
-  var result = await select_table("progress_reports");
+  var result = null;
+  if (check_query_params(req.query, ["name", "mentor_id", "mentee_id", "session_date", "summary", "smart_goal", "academic_development", "career_development", "personal_development", "additional_info", "session_length", "seeking_supervision"])) {
+    await add_progress_report(req.query.name, req.query.mentor_id, req.query.mentee_id, req.query.session_date, req.query.summary, req.query.smart_goal, req.query.academic_development, req.query.career_development, req.query.personal_development, req.query.additional_info, req.query.session_length, req.query.seeking_supervision);
+    result = await select_table("progress_reports");
+  }
   send_res(res, result);
 });
 
@@ -413,7 +416,10 @@ app.get('/add_progress_report', async function (req, res) {
   http://localhost:3000/find_progress_reports_by_name?mentor_name=Erica De Guzman&mentee_name=Ayushi Mittal
 */
 app.get('/find_progress_reports_by_name', async function (req, res) {
-  var result = await find_progress_reports_by_name(req.query.mentor_name, req.query.mentee_name)
+  var result = null;
+  if (check_query_params(req.query, ["mentor_name", "mentee_name"])) {
+    result = await find_progress_reports_by_name(req.query.mentor_name, req.query.mentee_name);
+  }
   send_res(res, result);
 });
 
@@ -421,7 +427,10 @@ app.get('/find_progress_reports_by_name', async function (req, res) {
   http://localhost:3000/find_progress_reports_by_id?mentor_id=1&mentee_id=1
 */
 app.get('/find_progress_reports_by_id', async function (req, res) {
-  var result = await find_progress_reports_by_id(req.query.mentor_id, req.query.mentee_id)
+  var result = null;
+  if (check_query_params(req.query, ["mentor_id", "mentee_id"])) {
+    result = await find_progress_reports_by_id(req.query.mentor_id, req.query.mentee_id);
+  }
   send_res(res, result);
 });
 
@@ -429,7 +438,10 @@ app.get('/find_progress_reports_by_id', async function (req, res) {
   http://localhost:3000/get_user_roles?email=ayushimi@usc.edu
 */
 app.get('/get_user_roles', async function (req, res) {
-  var result = await get_user_roles(req.query.email)
+  var result = null;
+  if (check_query_params(req.query, ["email"])) {
+    result = await get_user_roles(req.query.email);
+  }
   send_res(res, result);
 });
 
@@ -437,7 +449,10 @@ app.get('/get_user_roles', async function (req, res) {
   http://localhost:3000/get_user_info?id=1&role=mentor
 */
 app.get('/get_user_info', async function (req, res) {
-  var result = await get_user_info(req.query.id, req.query.role)
+  var result = null;
+  if (check_query_params(req.query, ["id", "role"])) {
+    result = await get_user_info(req.query.id, req.query.role);
+  }
   send_res(res, result);
 });
 
@@ -456,7 +471,10 @@ app.get('/search_users_by_name', async function (req, res) {
   http://localhost:3000/search_users_by_email?email=yus
 */
 app.get('/search_users_by_email', async function (req, res) {
-  var result = await search_users("email", req.query.email)
+  var result = null;
+  if (check_query_params(req.query, ["email"])) {
+    result = await search_users("email", req.query.email);
+  }
   send_res(res, result);
 });
 
@@ -464,8 +482,11 @@ app.get('/search_users_by_email', async function (req, res) {
   http://localhost:3000/remove_admin?id=5
 */
 app.get('/remove_admin', async function (req, res) {
-  await remove_admin(req.query.id);
-  var result = await select_table("administrator_info");
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    await remove_admin(req.query.id);
+    result = await select_table("administrator_info");
+  }
   send_res(res, result);
 })
 
@@ -473,7 +494,10 @@ app.get('/remove_admin', async function (req, res) {
   http://localhost:3000/deactivate_mentor_mentee?mentor_id=1&mentee_id=1
 */
 app.get('/deactivate_mentor_mentee', async function (req, res) {
-  var result = await deactivate_mentorship(req.query.mentor_id, req.query.mentee_id);
+  var result = null;
+  if (check_query_params(req.query, ["mentor_id",, "mentee_id"])) {
+    result = await deactivate_mentorship(req.query.mentor_id, req.query.mentee_id);
+  }
   send_res(res, result);
 });
 
@@ -481,7 +505,10 @@ app.get('/deactivate_mentor_mentee', async function (req, res) {
   http://localhost:3000/deactivate_mentor_mentee?mentor_id=1
 */
 app.get('/deactivate_mentorship_mentor', async function (req, res) {
-  var result = await deactivate_mentorship_by_mentor(req.query.mentor_id);
+  var result = null;
+  if (check_query_params(req.query, ["mentor_id"])) {
+    result = await deactivate_mentorship_by_mentor(req.query.mentor_id);
+  }
   send_res(res, result);
 });
 
@@ -489,7 +516,10 @@ app.get('/deactivate_mentorship_mentor', async function (req, res) {
   http://localhost:3000/activate_mentor_mentee?mentor_id=1&mentee_id=1
 */
 app.get('/activate_mentor_mentee', async function (req, res) {
-  var result = await activate_mentorship(req.query.mentor_id, req.query.mentee_id);
+  var result = null;
+  if (check_query_params(req.query, ["mentor_id", "mentee_id"])) {
+    result = await activate_mentorship(req.query.mentor_id, req.query.mentee_id);
+  }
   send_res(res, result);
 });
 
@@ -497,7 +527,10 @@ app.get('/activate_mentor_mentee', async function (req, res) {
   http://localhost:3000/activate_mentor_mentee?mentor_id=1
 */
 app.get('/activate_mentorship_mentor', async function (req, res) {
-  var result = await activate_mentorship_by_mentor(req.query.mentor_id);
+  var result = null;
+  if (check_query_params(req.query, ["mentor_id"])) {
+    result = await activate_mentorship_by_mentor(req.query.mentor_id);
+  }
   send_res(res, result);
 });
 
@@ -521,6 +554,9 @@ app.get('/get_active_mentorships', async function (req, res) {
   http://localhost:3000/get_mentor_of_mentee_id?id=1
 */
 app.get('/get_mentor_of_mentee_id', async function (req, res) {
-  var result = await get_mentor_of_mentee_id(req.query.id);
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    result = await get_mentor_of_mentee_id(req.query.id);
+  }
   send_res(res, result);
 });
