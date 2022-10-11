@@ -304,6 +304,12 @@ function send_res(res, result) {
   res.send(JSON.stringify(result))
 }
 
+function check_query_params(query, params) {
+  return params.every(function (element) {
+    return Object.keys(query).includes(element);
+  });
+}
+
 app.get('/', function (req, res) {
   res.send('Hello World!');
 });
@@ -422,7 +428,10 @@ app.get('/get_user_info', async function (req, res) {
   http://localhost:3000/search_users_by_name?name=Eric
 */
 app.get('/search_users_by_name', async function (req, res) {
-  var result = await search_users("name", req.query.name)
+  var result = null;
+  if (check_query_params(req.query, ["name"])) {
+    result = await search_users("name", req.query.name);
+  }
   send_res(res, result);
 });
 
