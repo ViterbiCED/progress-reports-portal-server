@@ -348,8 +348,11 @@ app.get('/select_table', async function (req, res) {
 app.get('/add_admin', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["name", "email"])) {
-    await add_admin(req.query.name, req.query.email);
-    result = await select_table("administrator_info");
+    var check = get_user_roles(req.query.email);
+    if (check.role != "invalid") {
+      await add_admin(req.query.name, req.query.email);
+      result = await select_table("administrator_info");
+    }
   }
   send_res(res, result);
 })
@@ -360,8 +363,11 @@ app.get('/add_admin', async function (req, res) {
 app.get('/add_mentor', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["name", "usc_id", "email", "phone_number", "major"])) {
-    await add_mentor(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major);
-    result = await select_table("mentor_info");
+    var check = get_user_roles(req.query.email);
+    if (check.role != "invalid") {
+      await add_mentor(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major);
+      result = await select_table("mentor_info");
+    }
   }
   send_res(res, result);
 });
@@ -372,8 +378,11 @@ app.get('/add_mentor', async function (req, res) {
 app.get('/add_mentee', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["name", "usc_id", "email", "phone_number", "major", "freshman", "semester_entered"])) {
-    await add_mentee(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major, req.query.freshman, req.query.semester_entered);
-    result = await select_table("mentee_info");
+    var check = get_user_roles(req.query.email);
+    if (check.role != "invalid") {
+      await add_mentee(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major, req.query.freshman, req.query.semester_entered);
+      result = await select_table("mentee_info");
+    }
   }
   send_res(res, result);
 });
