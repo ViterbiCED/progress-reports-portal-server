@@ -337,7 +337,7 @@ app.get('/create_db', async function (req, res) {
 app.get('/select_table', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["table_name"])) {
-    result = await select_table(table_name);
+    result = await select_table(req.query.table_name);
   }
   send_res(res, result);
 });
