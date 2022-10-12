@@ -244,16 +244,16 @@ async function get_user_info(id, role) {
 }
 
 async function search_users_of_table(role, column_name, search_term) {
-  var result = await client.query(`SELECT id, name FROM ${role}_info
+  var result = await client.query(`SELECT id, name, email FROM ${role}_info
                     WHERE LOWER(${column_name}) LIKE '%${search_term.toLowerCase()}%';`);
   return result.rows;
 }
 
 async function search_users(column_name, search_term) {
   return {
-    "mentors": await search_users_of_table("mentor", column_name, search_term),
-    "mentees": await search_users_of_table("mentee", column_name, search_term),
-    "administrators": await search_users_of_table("administrator", column_name, search_term)
+    "mentor": await search_users_of_table("mentor", column_name, search_term),
+    "mentee": await search_users_of_table("mentee", column_name, search_term),
+    "administrator": await search_users_of_table("administrator", column_name, search_term)
   };
 };
 
