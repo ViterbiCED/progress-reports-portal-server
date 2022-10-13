@@ -339,7 +339,7 @@ async function deactivate_question(id) {
 
 async function add_report_content(report_id, question_id, answer) {
   await client.query(`INSERT INTO report_content(report_id, question_id, answer)
-                      VALUES ('${report_id}', '${question_id}', '${answer};`);
+                      VALUES ('${report_id}', '${question_id}', '${answer});`);
 }
 
 
