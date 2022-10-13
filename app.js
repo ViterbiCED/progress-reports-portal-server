@@ -249,7 +249,7 @@ async function approve_progress_report(id) {
 }
 
 async function add_feedback(id, feedback) {
-  await client.query(`UPDATE reports SET feedback = ${feedback} WHERE id = ${id};`);
+  await client.query(`UPDATE reports SET feedback = '${feedback}' WHERE id = ${id};`);
 }
 
 async function check_value_exists(table_name, column_name, value) {
