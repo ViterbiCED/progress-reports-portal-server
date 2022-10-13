@@ -657,8 +657,8 @@ app.get('/add_question', async function (req, res) {
 */
 app.get('/deactivate_question', async function (req, res) {
   var result = null;
-  if (deactivate_question(req.query, ["id"])) {
-    result = await check_query_params(req.query.id);
+  if (check_query_params(req.query, ["id"])) {
+    result = await deactivate_question(req.query.id);
   }
   send_res(res, result);
 });
@@ -668,8 +668,8 @@ app.get('/deactivate_question', async function (req, res) {
 */
 app.get('/add_report_content', async function (req, res) {
   var result = null;
-  if (add_report_content(req.query, ["report_id", "question_id", "answer"])) {
-    result = await check_query_params(req.query.report_id, req.query.question_id, req.query.answer);
+  if (check_query_params(req.query, ["report_id", "question_id", "answer"])) {
+    result = await add_report_content(req.query.report_id, req.query.question_id, req.query.answer);
   }
   send_res(res, result);
 });
