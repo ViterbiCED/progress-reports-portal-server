@@ -323,7 +323,24 @@ async function get_mentor_of_mentee_id(id) {
   return result.rows[0];
 }
 
+async function add_question_mc(question, type, options) {
+  await client.query(`INSERT INTO questions(question, type, options)
+                      VALUES ('${question}', '${type}', ARRAY ['${options}'];`);
+}
 
+async function add_question_text(question, type) {
+  await client.query(`INSERT INTO questions(question, type)
+                      VALUES ('${question}', '${type}';`);
+}
+
+async function deactivate_question(id) {
+  await client.query(`UPDATE questions SET active = FALSE WHERE id = ${id};`);
+}
+
+async function add_report_content(report_id, question_id, answer) {
+  await client.query(`INSERT INTO report_content(report_id, question_id, answer)
+                      VALUES ('${report_id}', '${question_id}', '${answer};`);
+}
 
 
 // ===== API CALLS ======
@@ -620,6 +637,39 @@ app.get('/get_mentor_of_mentee_id', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["id"])) {
     result = await get_mentor_of_mentee_id(req.query.id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/add_question?question=Meeting number&type=Short answer
+*/
+app.get('/add_question', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["question", "type"])) {
+    result = await add_question_text(req.query.question, req.query.type);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/deactivate_question?id=1
+*/
+app.get('/deactivate_question', async function (req, res) {
+  var result = null;
+  if (deactivate_question(req.query, ["id"])) {
+    result = await check_query_params(req.query.id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/add_report_content?report_id=1&question_id=1&answer=1
+*/
+app.get('/add_report_content', async function (req, res) {
+  var result = null;
+  if (add_report_content(req.query, ["report_id", "question_id", "answer"])) {
+    result = await check_query_params(req.query.report_id, req.query.question_id, req.query.answer);
   }
   send_res(res, result);
 });
