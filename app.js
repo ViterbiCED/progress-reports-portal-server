@@ -10,6 +10,9 @@ var client;
 // Reset db back to initial state
 async function create_db() {
   await client.query(`
+  DROP TABLE if EXISTS public.report_content;
+  DROP TABLE if EXISTS public.questions;
+  DROP TABLE if EXISTS public.reports;
   DROP TABLE if EXISTS public.mentors_mentees;
   DROP TABLE if EXISTS public.progress_reports;
   DROP TABLE if EXISTS public.mentee_info;
@@ -20,19 +23,19 @@ async function create_db() {
     id integer NOT NULL,
     name character varying NOT NULL,
     email character varying NOT NULL
-  );
+);
 
-  CREATE SEQUENCE public.administrator_info_id_seq
-      AS integer
-      START WITH 1
-      INCREMENT BY 1
-      NO MINVALUE
-      NO MAXVALUE
-      CACHE 1;
+CREATE SEQUENCE public.administrator_info_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
-  ALTER SEQUENCE public.administrator_info_id_seq OWNED BY public.administrator_info.id;
+ALTER SEQUENCE public.administrator_info_id_seq OWNED BY public.administrator_info.id;
 
-  CREATE TABLE public.mentee_info (
+CREATE TABLE public.mentee_info (
     name character varying NOT NULL,
     usc_id bigint NOT NULL,
     email character varying NOT NULL,
@@ -42,130 +45,151 @@ async function create_db() {
     semester_entered character varying NOT NULL,
     meetings integer DEFAULT 0 NOT NULL,
     id integer NOT NULL
-  );
+);
 
-  CREATE SEQUENCE public.mentee_info_id_seq
-      AS integer
-      START WITH 1
-      INCREMENT BY 1
-      NO MINVALUE
-      NO MAXVALUE
-      CACHE 1;
+CREATE SEQUENCE public.mentee_info_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
-  ALTER SEQUENCE public.mentee_info_id_seq OWNED BY public.mentee_info.id;
+ALTER SEQUENCE public.mentee_info_id_seq OWNED BY public.mentee_info.id;
 
-  CREATE TABLE public.mentor_info (
-      id integer NOT NULL,
-      name character varying NOT NULL,
-      usc_id bigint NOT NULL,
-      email character varying NOT NULL,
-      phone_number bigint NOT NULL,
-      major character varying NOT NULL
-  );
+CREATE TABLE public.mentor_info (
+    id integer NOT NULL,
+    name character varying NOT NULL,
+    usc_id bigint NOT NULL,
+    email character varying NOT NULL,
+    phone_number bigint NOT NULL,
+    major character varying NOT NULL
+);
 
-  CREATE SEQUENCE public.mentor_info_id_seq
-      AS integer
-      START WITH 1
-      INCREMENT BY 1
-      NO MINVALUE
-      NO MAXVALUE
-      CACHE 1;
+CREATE SEQUENCE public.mentor_info_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
 
-  ALTER SEQUENCE public.mentor_info_id_seq OWNED BY public.mentor_info.id;
+ALTER SEQUENCE public.mentor_info_id_seq OWNED BY public.mentor_info.id;
 
-  CREATE TABLE public.mentors_mentees (
-      mentee_id integer,
-      mentor_id integer,
-      active boolean DEFAULT true
-  );
+CREATE TABLE public.mentors_mentees (
+    mentee_id integer,
+    mentor_id integer,
+    active boolean DEFAULT true
+);
 
-  CREATE TABLE public.progress_reports (
-      id integer NOT NULL,
-      name character varying NOT NULL,
-      mentor_id integer,
-      session_date date NOT NULL,
-      summary text NOT NULL,
-      smart_goal text NOT NULL,
-      academic_development text NOT NULL,
-      career_development text NOT NULL,
-      personal_development text NOT NULL,
-      additional_info text NOT NULL,
-      session_length integer NOT NULL,
-      seeking_supervision boolean NOT NULL,
-      approved boolean DEFAULT false NOT NULL,
-      feedback text,
-      mentee_id integer
-  );
+CREATE TABLE public.questions (
+    id integer NOT NULL,
+    question character varying NOT NULL,
+    type character varying NOT NULL,
+    active boolean DEFAULT true NOT NULL,
+    options character varying[]
+);
 
-  CREATE SEQUENCE public.progress_reports_id_seq
-      AS integer
-      START WITH 1
-      INCREMENT BY 1
-      NO MINVALUE
-      NO MAXVALUE
-      CACHE 1;
+ALTER TABLE public.questions ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.questions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
-  ALTER SEQUENCE public.progress_reports_id_seq OWNED BY public.progress_reports.id;
+CREATE TABLE public.report_content (
+    report_id integer NOT NULL,
+    question_id integer NOT NULL,
+    answer character varying NOT NULL
+);
 
-  ALTER TABLE ONLY public.administrator_info ALTER COLUMN id SET DEFAULT nextval('public.administrator_info_id_seq'::regclass);
+CREATE TABLE public.reports (
+    id integer NOT NULL,
+    mentor_id integer NOT NULL,
+    mentee_id integer NOT NULL,
+    approved boolean DEFAULT false NOT NULL,
+    feedback character varying,
+    session_date date NOT NULL,
+    name character varying NOT NULL
+);
 
-  ALTER TABLE ONLY public.mentee_info ALTER COLUMN id SET DEFAULT nextval('public.mentee_info_id_seq'::regclass);
+ALTER TABLE public.reports ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.reports_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
 
-  ALTER TABLE ONLY public.mentor_info ALTER COLUMN id SET DEFAULT nextval('public.mentor_info_id_seq'::regclass);
+ALTER TABLE ONLY public.administrator_info ALTER COLUMN id SET DEFAULT nextval('public.administrator_info_id_seq'::regclass);
 
-  ALTER TABLE ONLY public.progress_reports ALTER COLUMN id SET DEFAULT nextval('public.progress_reports_id_seq'::regclass);
+ALTER TABLE ONLY public.mentee_info ALTER COLUMN id SET DEFAULT nextval('public.mentee_info_id_seq'::regclass);
 
-  INSERT INTO public.administrator_info (id, name, email) VALUES (4, 'Katherine Munoz', 'kimunoz@usc.edu');
-  INSERT INTO public.administrator_info (id, name, email) VALUES (5, 'Miguel Anzelmetti', 'anzelmet@usc.edu');
-  INSERT INTO public.administrator_info (id, name, email) VALUES (6, 'AdminTest', 'admin@usc.edu');
+ALTER TABLE ONLY public.mentor_info ALTER COLUMN id SET DEFAULT nextval('public.mentor_info_id_seq'::regclass);
 
-  INSERT INTO public.mentee_info (name, usc_id, email, phone_number, major, freshman, semester_entered, meetings, id) VALUES ('Ayushi Mittal', 6894100517, 'ayushimi@usc.edu', 1234567890, 'Computer Engineering and Computer Science', false, 'Fall 2019', 0, 1);
-  INSERT INTO public.mentee_info (name, usc_id, email, phone_number, major, freshman, semester_entered, meetings, id) VALUES ('Tommy Trojan', 1234567890, 'ttrojan@usc.edu', 1234567890, 'Mechanical Engineering', true, 'Fall 2022', 0, 2);
-  INSERT INTO public.mentee_info (name, usc_id, email, phone_number, major, freshman, semester_entered, meetings, id) VALUES ('Uma Durairaj', 1234567890, 'uduraira@usc.edu', 1234567890, 'Computer Science', false, 'Fall 2019', 0, 3);
-  INSERT INTO public.mentee_info (name, usc_id, email, phone_number, major, freshman, semester_entered, meetings, id) VALUES ('Test_Mentee', 543210, 'test@usc.edu', 98765432, 'Debugging', true, 'Fall_2022', 0, 4);
+INSERT INTO public.administrator_info (id, name, email) VALUES (1, 'Katherine Munoz', 'kimunoz@usc.edu');
+INSERT INTO public.administrator_info (id, name, email) VALUES (2, 'Chloe Kuo', 'cmkuo@usc.edu');
+INSERT INTO public.administrator_info (id, name, email) VALUES (3, 'Uma Durairaj', 'cmkuo@usc.edu');
 
-  INSERT INTO public.mentor_info (id, name, usc_id, email, phone_number, major) VALUES (1, 'Erica De Guzman', 1234567890, 'ed_139@usc.edu', 1234567890, 'Computer Science');
-  INSERT INTO public.mentor_info (id, name, usc_id, email, phone_number, major) VALUES (2, 'Chloe Kuo', 123456789, 'cmkuo@usc.edu', 123456789, 'Computer Science');
+INSERT INTO public.mentee_info (name, usc_id, email, phone_number, major, freshman, semester_entered, meetings, id) VALUES ('Ayushi Mittal', 6894100517, 'ayushimi@usc.edu', 1234567890, 'Computer Engineering and Computer Science', false, 'Fall 2019', 0, 1);
 
-  INSERT INTO public.mentors_mentees (mentee_id, mentor_id, active) VALUES (1, 1, true);
-  INSERT INTO public.mentors_mentees (mentee_id, mentor_id, active) VALUES (2, 1, true);
-  INSERT INTO public.mentors_mentees (mentee_id, mentor_id, active) VALUES (3, 2, true);
+INSERT INTO public.mentor_info (id, name, usc_id, email, phone_number, major) VALUES (1, 'Erica De Guzman', 1234567890, 'ed_139@usc.edu', 1234567890, 'Computer Science');
 
-  INSERT INTO public.progress_reports (id, name, mentor_id, session_date, summary, smart_goal, academic_development, career_development, personal_development, additional_info, session_length, seeking_supervision, approved, feedback, mentee_id) VALUES (1, 'Progress Report #1', 1, '2022-05-06', 'This session went well.', 'The SMART Goal was achieved.', 'There is significant academic development', 'The career development isn''t progressing.', 'The personal development is alright.', 'N/A', 60, true, false, NULL, 1);
-  INSERT INTO public.progress_reports (id, name, mentor_id, session_date, summary, smart_goal, academic_development, career_development, personal_development, additional_info, session_length, seeking_supervision, approved, feedback, mentee_id) VALUES (2, 'Progress Report #2', 1, '2022-09-13', 'We had our second meeting!', 'The SMART goal is to sleep more.', 'Ayushi is skipping class.', 'Ayushi has a job!', 'Ayushi is not sleeping.', 'Please advise', 60, true, false, NULL, 1);
-  INSERT INTO public.progress_reports (id, name, mentor_id, session_date, summary, smart_goal, academic_development, career_development, personal_development, additional_info, session_length, seeking_supervision, approved, feedback, mentee_id) VALUES (5, 'Initial Progress Report', 1, '2022-09-15', 'We met to figure out a plan for the semester.', 'The SMART Goal is to apply to one job by next Thursday.', 'The student is doing well.', 'The student is working on applying to jobs.', 'Good personal development.', 'N/A', 60, false, false, NULL, 2);
+INSERT INTO public.mentors_mentees (mentee_id, mentor_id, active) VALUES (1, 1, true);
 
-  SELECT pg_catalog.setval('public.administrator_info_id_seq', 6, true);
+INSERT INTO public.questions (id, question, type, active, options) OVERRIDING SYSTEM VALUE VALUES (1, 'Summary', 'short answer', true, NULL);
+INSERT INTO public.questions (id, question, type, active, options) OVERRIDING SYSTEM VALUE VALUES (2, 'Meeting length', 'multiple choice', true, '{"30 minutes","1 hour"}');
 
-  SELECT pg_catalog.setval('public.mentee_info_id_seq', 4, true);
+INSERT INTO public.report_content (report_id, question_id, answer) VALUES (1, 1, 'This is our first meeting');
+INSERT INTO public.report_content (report_id, question_id, answer) VALUES (1, 2, '1 hour');
 
-  SELECT pg_catalog.setval('public.mentor_info_id_seq', 2, true);
+INSERT INTO public.reports (id, mentor_id, mentee_id, approved, feedback, session_date, name) OVERRIDING SYSTEM VALUE VALUES (1, 1, 1, false, NULL, '2022-10-12', 'First meeting');
 
-  SELECT pg_catalog.setval('public.progress_reports_id_seq', 5, true);
+SELECT pg_catalog.setval('public.administrator_info_id_seq', 6, true);
 
-  ALTER TABLE ONLY public.administrator_info
-      ADD CONSTRAINT administrator_info_pkey PRIMARY KEY (id);
+SELECT pg_catalog.setval('public.mentee_info_id_seq', 4, true);
 
-  ALTER TABLE ONLY public.mentee_info
-      ADD CONSTRAINT mentee_info_pkey PRIMARY KEY (id);
+SELECT pg_catalog.setval('public.mentor_info_id_seq', 2, true);
 
-  ALTER TABLE ONLY public.mentor_info
-      ADD CONSTRAINT mentor_info_pkey PRIMARY KEY (id);
+SELECT pg_catalog.setval('public.questions_id_seq', 2, true);
 
-  ALTER TABLE ONLY public.progress_reports
-      ADD CONSTRAINT progress_reports_pkey PRIMARY KEY (id);
+SELECT pg_catalog.setval('public.reports_id_seq', 1, true);
 
-  ALTER TABLE ONLY public.mentors_mentees
-      ADD CONSTRAINT fk_mentee FOREIGN KEY (mentee_id) REFERENCES public.mentee_info(id);
+ALTER TABLE ONLY public.administrator_info
+    ADD CONSTRAINT administrator_info_pkey PRIMARY KEY (id);
 
-  ALTER TABLE ONLY public.progress_reports
-      ADD CONSTRAINT fk_mentee FOREIGN KEY (mentee_id) REFERENCES public.mentee_info(id);
+ALTER TABLE ONLY public.mentee_info
+    ADD CONSTRAINT mentee_info_pkey PRIMARY KEY (id);
 
-  ALTER TABLE ONLY public.progress_reports
-      ADD CONSTRAINT fk_mentor FOREIGN KEY (mentor_id) REFERENCES public.mentor_info(id);
+ALTER TABLE ONLY public.mentor_info
+    ADD CONSTRAINT mentor_info_pkey PRIMARY KEY (id);
 
-  ALTER TABLE ONLY public.mentors_mentees
-      ADD CONSTRAINT fk_mentor FOREIGN KEY (mentor_id) REFERENCES public.mentor_info(id);
+ALTER TABLE ONLY public.questions
+    ADD CONSTRAINT questions_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.reports
+    ADD CONSTRAINT reports_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.mentors_mentees
+    ADD CONSTRAINT fk_mentee FOREIGN KEY (mentee_id) REFERENCES public.mentee_info(id);
+
+ALTER TABLE ONLY public.reports
+    ADD CONSTRAINT fk_mentee FOREIGN KEY (mentee_id) REFERENCES public.mentee_info(id);
+
+ALTER TABLE ONLY public.mentors_mentees
+    ADD CONSTRAINT fk_mentor FOREIGN KEY (mentor_id) REFERENCES public.mentor_info(id);
+
+ALTER TABLE ONLY public.reports
+    ADD CONSTRAINT fk_mentor FOREIGN KEY (mentor_id) REFERENCES public.mentor_info(id);
+
+ALTER TABLE ONLY public.report_content
+    ADD CONSTRAINT fk_question FOREIGN KEY (question_id) REFERENCES public.questions(id);
+
+ALTER TABLE ONLY public.report_content
+    ADD CONSTRAINT fk_report FOREIGN KEY (report_id) REFERENCES public.reports(id);
 
   `);
 };
