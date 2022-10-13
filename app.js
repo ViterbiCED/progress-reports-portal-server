@@ -330,7 +330,7 @@ async function add_question_mc(question, type, options) {
 
 async function add_question_text(question, type) {
   await client.query(`INSERT INTO questions(question, type)
-                      VALUES ('${question}', '${type}';`);
+                      VALUES ('${question}', '${type}');`);
 }
 
 async function deactivate_question(id) {
