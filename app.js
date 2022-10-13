@@ -14,7 +14,6 @@ async function create_db() {
   DROP TABLE if EXISTS public.questions;
   DROP TABLE if EXISTS public.reports;
   DROP TABLE if EXISTS public.mentors_mentees;
-  DROP TABLE if EXISTS public.progress_reports;
   DROP TABLE if EXISTS public.mentee_info;
   DROP TABLE if EXISTS public.mentor_info;
   DROP TABLE if EXISTS public.administrator_info;
@@ -229,19 +228,19 @@ async function get_mentees_of_mentor_id(id) {
 }
 
 async function add_progress_report(name, mentor_id, mentee_id, session_date) {
-  await client.query(`INSERT INTO progress_reports(name, mentor_id, mentee_id, session_date)
+  await client.query(`INSERT INTO reports(name, mentor_id, mentee_id, session_date)
                       VALUES ('${name}', '${mentor_id}', '${mentee_id}', '${session_date}');`);
 };
 
 async function find_progress_reports_by_name(mentor_name, mentee_name) {
-  var result = await client.query(`SELECT progress_reports.name, progress_reports.session_date, progress_reports.approved FROM progress_reports, mentor_info, mentee_info
-                    WHERE mentor_info.name =  '${mentor_name}' AND progress_reports.mentor_id = mentor_info.id AND mentee_info.name =  '${mentee_name}' AND progress_reports.mentee_id = mentee_info.id;`);
+  var result = await client.query(`SELECT reports.name, reports.session_date, reports.approved FROM reports, mentor_info, mentee_info
+                    WHERE mentor_info.name =  '${mentor_name}' AND reports.mentor_id = mentor_info.id AND mentee_info.name =  '${mentee_name}' AND reports.mentee_id = mentee_info.id;`);
   return result.rows;
 };
 
 async function find_progress_reports_by_id(mentor_id, mentee_id) {
-  var result = await client.query(`SELECT progress_reports.name, progress_reports.session_date, progress_reports.approved FROM progress_reports
-                    WHERE progress_reports.mentor_id = ${mentor_id} AND progress_reports.mentee_id = ${mentee_id};`);
+  var result = await client.query(`SELECT reports.name, reports.session_date, reports.approved FROM reports
+                    WHERE reports.mentor_id = ${mentor_id} AND reports.mentee_id = ${mentee_id};`);
   return result.rows;
 };
 
