@@ -324,8 +324,10 @@ async function get_mentor_of_mentee_id(id) {
 }
 
 async function add_question_mc(question, type, options) {
+  console.log(`INSERT INTO questions(question, type, options)
+  VALUES ('${question}', '${type}', '{${options}}';`);
   await client.query(`INSERT INTO questions(question, type, options)
-                      VALUES ('${question}', '${type}', ARRAY ['${options}'];`);
+                      VALUES ('${question}', '${type}', '{${options}}');`);
 }
 
 async function add_question_text(question, type) {
@@ -340,6 +342,10 @@ async function deactivate_question(id) {
 async function add_report_content(report_id, question_id, answer) {
   await client.query(`INSERT INTO report_content(report_id, question_id, answer)
                       VALUES ('${report_id}', '${question_id}', '${answer}');`);
+}
+
+async function delete_question(id) {
+  await client.query(`DELETE FROM questions WHERE id = ${id};`);
 }
 
 
@@ -643,10 +649,17 @@ app.get('/get_mentor_of_mentee_id', async function (req, res) {
 
 /*
   http://localhost:3000/add_question?question=Meeting number&type=Short answer
+  http://localhost:3000/add_question?question=Test MC&type=Multiple choice&option=Option 1&option=Option 2&option=Option 3
 */
 app.get('/add_question', async function (req, res) {
   var result = null;
-  if (check_query_params(req.query, ["question", "type"])) {
+  if (check_query_params(req.query, ["question", "type", "option"])) {
+    var options = req.query.option;
+    if (typeof req.query.option == 'object') {
+      options = req.query.option.join('", "');
+    }
+    result = await add_question_mc(req.query.question, req.query.type, `"${options}"`);
+  } else if (check_query_params(req.query, ["question", "type"])) {
     result = await add_question_text(req.query.question, req.query.type);
   }
   send_res(res, result);
@@ -673,3 +686,14 @@ app.get('/add_report_content', async function (req, res) {
   }
   send_res(res, result);
 });
+
+/*
+  http://localhost:3000/delete_question?id=4
+*/
+app.get('/delete_question', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    await delete_question(req.query.id);
+  }
+  send_res(res, result);
+})
