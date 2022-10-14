@@ -10,18 +10,19 @@ var client;
 // Reset db back to initial state
 async function create_db() {
   await client.query(`
-  DROP TABLE if EXISTS public.report_content;
-  DROP TABLE if EXISTS public.questions;
-  DROP TABLE if EXISTS public.reports;
-  DROP TABLE if EXISTS public.mentors_mentees;
-  DROP TABLE if EXISTS public.mentee_info;
-  DROP TABLE if EXISTS public.mentor_info;
-  DROP TABLE if EXISTS public.administrator_info;
+DROP TABLE if EXISTS public.question_orders;
+DROP TABLE if EXISTS public.report_content;
+DROP TABLE if EXISTS public.questions;
+DROP TABLE if EXISTS public.reports;
+DROP TABLE if EXISTS public.mentors_mentees;
+DROP TABLE if EXISTS public.mentee_info;
+DROP TABLE if EXISTS public.mentor_info;
+DROP TABLE if EXISTS public.administrator_info;
 
-  CREATE TABLE public.administrator_info (
-    id integer NOT NULL,
-    name character varying NOT NULL,
-    email character varying NOT NULL
+CREATE TABLE public.administrator_info (
+  id integer NOT NULL,
+  name character varying NOT NULL,
+  email character varying NOT NULL
 );
 
 CREATE SEQUENCE public.administrator_info_id_seq
@@ -111,7 +112,8 @@ CREATE TABLE public.reports (
     approved boolean DEFAULT false NOT NULL,
     feedback character varying,
     session_date date NOT NULL,
-    name character varying NOT NULL
+    name character varying NOT NULL,
+    question_order_id integer NOT NULL
 );
 
 ALTER TABLE public.reports ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
@@ -121,6 +123,21 @@ ALTER TABLE public.reports ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
     NO MINVALUE
     NO MAXVALUE
     CACHE 1
+);
+
+CREATE TABLE public.question_orders (
+  id integer NOT NULL,
+  question_order integer[],
+  current boolean DEFAULT true NOT NULL
+);
+
+ALTER TABLE public.question_orders ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+  SEQUENCE NAME public.question_orders_id_seq
+  START WITH 1
+  INCREMENT BY 1
+  NO MINVALUE
+  NO MAXVALUE
+  CACHE 1
 );
 
 ALTER TABLE ONLY public.administrator_info ALTER COLUMN id SET DEFAULT nextval('public.administrator_info_id_seq'::regclass);
@@ -139,13 +156,16 @@ INSERT INTO public.mentor_info (id, name, usc_id, email, phone_number, major) VA
 
 INSERT INTO public.mentors_mentees (mentee_id, mentor_id, active) VALUES (1, 1, true);
 
-INSERT INTO public.questions (id, question, type, active, options) OVERRIDING SYSTEM VALUE VALUES (1, 'Summary', 'short answer', true, NULL);
-INSERT INTO public.questions (id, question, type, active, options) OVERRIDING SYSTEM VALUE VALUES (2, 'Meeting length', 'multiple choice', true, '{"30 minutes","1 hour"}');
+INSERT INTO public.questions (id, question, type, active, options) OVERRIDING SYSTEM VALUE VALUES (1, 'Summary', 'Short answer', true, NULL);
+INSERT INTO public.questions (id, question, type, active, options) OVERRIDING SYSTEM VALUE VALUES (2, 'Meeting length', 'Multiple choice', true, '{"30 minutes","1 hour"}');
 
 INSERT INTO public.report_content (report_id, question_id, answer) VALUES (1, 1, 'This is our first meeting');
 INSERT INTO public.report_content (report_id, question_id, answer) VALUES (1, 2, '1 hour');
 
-INSERT INTO public.reports (id, mentor_id, mentee_id, approved, feedback, session_date, name) OVERRIDING SYSTEM VALUE VALUES (1, 1, 1, false, NULL, '2022-10-12', 'First meeting');
+INSERT INTO public.reports (id, mentor_id, mentee_id, approved, feedback, session_date, name, question_order_id) OVERRIDING SYSTEM VALUE VALUES (1, 1, 1, false, NULL, '2022-10-12', 'First meeting', 1);
+
+INSERT INTO public.question_orders (id, question_order, current) OVERRIDING SYSTEM VALUE VALUES (1, '{2,1}', false);
+INSERT INTO public.question_orders (id, question_order, current) OVERRIDING SYSTEM VALUE VALUES (2, '{1,2}', true);
 
 SELECT pg_catalog.setval('public.administrator_info_id_seq', 6, true);
 
@@ -156,6 +176,8 @@ SELECT pg_catalog.setval('public.mentor_info_id_seq', 2, true);
 SELECT pg_catalog.setval('public.questions_id_seq', 2, true);
 
 SELECT pg_catalog.setval('public.reports_id_seq', 1, true);
+
+SELECT pg_catalog.setval('public.question_orders_id_seq', 2, true);
 
 ALTER TABLE ONLY public.administrator_info
     ADD CONSTRAINT administrator_info_pkey PRIMARY KEY (id);
@@ -171,6 +193,9 @@ ALTER TABLE ONLY public.questions
 
 ALTER TABLE ONLY public.reports
     ADD CONSTRAINT reports_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY public.question_orders
+    ADD CONSTRAINT question_orders_pkey PRIMARY KEY (id);
 
 ALTER TABLE ONLY public.mentors_mentees
     ADD CONSTRAINT fk_mentee FOREIGN KEY (mentee_id) REFERENCES public.mentee_info(id);
@@ -189,6 +214,9 @@ ALTER TABLE ONLY public.report_content
 
 ALTER TABLE ONLY public.report_content
     ADD CONSTRAINT fk_report FOREIGN KEY (report_id) REFERENCES public.reports(id);
+
+ALTER TABLE ONLY public.reports
+    ADD CONSTRAINT fk_order FOREIGN KEY (question_order_id) REFERENCES public.question_orders(id);
 
   `);
 };
@@ -227,9 +255,19 @@ async function get_mentees_of_mentor_id(id) {
   return result.rows;
 }
 
+async function get_question_order_by_id(id) {
+  var result = await client.query(`SELECT question_order FROM question_orders WHERE id = '${id}';`);
+  return result.rows;
+}
+
+async function get_current_question_order() {
+  var result = await client.query(`SELECT id, question_order FROM question_orders WHERE current = TRUE;`);
+  return result.rows[0];
+}
+
 async function add_progress_report(name, mentor_id, mentee_id, session_date) {
-  await client.query(`INSERT INTO reports(name, mentor_id, mentee_id, session_date)
-                      VALUES ('${name}', '${mentor_id}', '${mentee_id}', '${session_date}');`);
+  await client.query(`INSERT INTO reports(name, mentor_id, mentee_id, session_date, question_order_id)
+                      VALUES ('${name}', '${mentor_id}', '${mentee_id}', '${session_date}', '${(await get_current_question_order()).id}');`);
 };
 
 async function find_progress_reports_by_name(mentor_name, mentee_name) {
@@ -324,8 +362,6 @@ async function get_mentor_of_mentee_id(id) {
 }
 
 async function add_question_mc(question, type, options) {
-  console.log(`INSERT INTO questions(question, type, options)
-  VALUES ('${question}', '${type}', '{${options}}';`);
   await client.query(`INSERT INTO questions(question, type, options)
                       VALUES ('${question}', '${type}', '{${options}}');`);
 }
@@ -346,6 +382,15 @@ async function add_report_content(report_id, question_id, answer) {
 
 async function delete_question(id) {
   await client.query(`DELETE FROM questions WHERE id = ${id};`);
+}
+
+async function set_current_question_order(order) {
+  await client.query(`UPDATE question_orders SET current = FALSE WHERE current = TRUE;`);
+  if (await check_value_exists("question_orders", "question_order", `{${order}}`)) {
+    await client.query(`UPDATE question_orders SET current = TRUE WHERE question_order = '{${order}}';`);
+  } else {
+    await client.query(`INSERT INTO question_orders(question_order) VALUES ('{${order}}');`);
+  }
 }
 
 
@@ -697,3 +742,25 @@ app.get('/delete_question', async function (req, res) {
   }
   send_res(res, result);
 })
+
+/*
+  http://localhost:3000/set_current_question_order?order=1,2
+*/
+app.get('/set_current_question_order', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["order"])) {
+    await set_current_question_order(req.query.order);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/get_question_order?id=1
+*/
+app.get('/get_question_order', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    result = await get_question_order_by_id(req.query.id);
+  }
+  send_res(res, result);
+});
