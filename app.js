@@ -764,3 +764,11 @@ app.get('/get_question_order', async function (req, res) {
   }
   send_res(res, result);
 });
+
+/*
+  http://localhost:3000/get_current_question_order
+*/
+app.get('/get_current_question_order', async function (req, res) {
+  var result = await get_current_question_order();
+  send_res(res, result);
+});
