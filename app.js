@@ -711,8 +711,8 @@ app.get('/get_mentor_of_mentee_id', async function (req, res) {
 });
 
 /*
-  http://localhost:3000/add_question?question=Meeting number&type=Short answer
-  http://localhost:3000/add_question?question=Test MC&type=Multiple choice&option=Option 1&option=Option 2&option=Option 3
+  http://localhost:3000/add_question?question=Meeting number&type=Short answer&description=How many meetings so far
+  http://localhost:3000/add_question?question=Test MC&type=Multiple choice&description=Test question&option=Option 1&option=Option 2&option=Option 3
 */
 app.get('/add_question', async function (req, res) {
   var result = null;
