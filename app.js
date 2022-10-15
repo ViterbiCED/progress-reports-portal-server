@@ -388,7 +388,7 @@ async function delete_question(id) {
 
 async function get_question_by_id(id) {
   var result = await client.query(`SELECT * FROM questions WHERE id = '${id}';`);
-  return result.rows;
+  return result.rows[0];
 }
 
 async function set_current_question_order(order) {
