@@ -86,7 +86,9 @@ CREATE TABLE public.questions (
     id integer NOT NULL,
     question character varying NOT NULL,
     type character varying NOT NULL,
+    description character varying NOT NULL,
     active boolean DEFAULT true NOT NULL,
+    required boolean DEFAULT true NOT NULL,
     options character varying[]
 );
 
@@ -156,8 +158,8 @@ INSERT INTO public.mentor_info (id, name, usc_id, email, phone_number, major) VA
 
 INSERT INTO public.mentors_mentees (mentee_id, mentor_id, active) VALUES (1, 1, true);
 
-INSERT INTO public.questions (id, question, type, active, options) OVERRIDING SYSTEM VALUE VALUES (1, 'Summary', 'Short answer', true, NULL);
-INSERT INTO public.questions (id, question, type, active, options) OVERRIDING SYSTEM VALUE VALUES (2, 'Meeting length', 'Multiple choice', true, '{"30 minutes","1 hour"}');
+INSERT INTO public.questions (id, question, type, description, active, options) OVERRIDING SYSTEM VALUE VALUES (1, 'Summary', 'Short answer', 'Summary of the meeting', true, NULL);
+INSERT INTO public.questions (id, question, type, description, active, options) OVERRIDING SYSTEM VALUE VALUES (2, 'Meeting length', 'Multiple choice', 'How long you met for', true, '{"30 minutes","1 hour"}');
 
 INSERT INTO public.report_content (report_id, question_id, answer) VALUES (1, 1, 'This is our first meeting');
 INSERT INTO public.report_content (report_id, question_id, answer) VALUES (1, 2, '1 hour');
@@ -361,20 +363,28 @@ async function get_mentor_of_mentee_id(id) {
   return result.rows[0];
 }
 
-async function add_question_mc(question, type, options) {
-  var result = await client.query(`INSERT INTO questions(question, type, options)
-                      VALUES ('${question}', '${type}', '{${options}}') RETURNING id;`);
+async function add_question_mc(question, type, description, options) {
+  var result = await client.query(`INSERT INTO questions(question, type, description, options)
+                      VALUES ('${question}', '${type}', '${description}', '{${options}}') RETURNING id;`);
   return result.rows[0];
 }
 
-async function add_question_text(question, type) {
-  var result = await client.query(`INSERT INTO questions(question, type)
-                      VALUES ('${question}', '${type}') RETURNING id;`);
+async function add_question_text(question, type, description) {
+  var result = await client.query(`INSERT INTO questions(question, type, description)
+                      VALUES ('${question}', '${type}', '${description}') RETURNING id;`);
   return result.rows[0];
 }
 
 async function deactivate_question(id) {
   await client.query(`UPDATE questions SET active = FALSE WHERE id = ${id};`);
+}
+
+async function question_not_required(id) {
+  await client.query(`UPDATE questions SET required = FALSE WHERE id = ${id};`);
+}
+
+async function question_required(id) {
+  await client.query(`UPDATE questions SET required = TRUE WHERE id = ${id};`);
 }
 
 async function add_report_content(report_id, question_id, answer) {
@@ -706,14 +716,14 @@ app.get('/get_mentor_of_mentee_id', async function (req, res) {
 */
 app.get('/add_question', async function (req, res) {
   var result = null;
-  if (check_query_params(req.query, ["question", "type", "option"])) {
+  if (check_query_params(req.query, ["question", "type", "description", "option"])) {
     var options = req.query.option;
     if (typeof req.query.option == 'object') {
       options = req.query.option.join('", "');
     }
-    result = await add_question_mc(req.query.question, req.query.type, `"${options}"`);
-  } else if (check_query_params(req.query, ["question", "type"])) {
-    result = await add_question_text(req.query.question, req.query.type);
+    result = await add_question_mc(req.query.question, req.query.type, req.query.description, `"${options}"`);
+  } else if (check_query_params(req.query, ["question", "type", "description"])) {
+    result = await add_question_text(req.query.question, req.query.type, req.query.description);
   }
   send_res(res, result);
 });
@@ -725,6 +735,28 @@ app.get('/deactivate_question', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["id"])) {
     result = await deactivate_question(req.query.id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/question_not_required?id=1
+*/
+app.get('/question_not_required', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    result = await question_not_required(req.query.id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/question_required?id=1
+*/
+app.get('/question_required', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    result = await question_required(req.query.id);
   }
   send_res(res, result);
 });
