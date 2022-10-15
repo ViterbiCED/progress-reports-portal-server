@@ -362,13 +362,15 @@ async function get_mentor_of_mentee_id(id) {
 }
 
 async function add_question_mc(question, type, options) {
-  await client.query(`INSERT INTO questions(question, type, options)
-                      VALUES ('${question}', '${type}', '{${options}}');`);
+  var result = await client.query(`INSERT INTO questions(question, type, options)
+                      VALUES ('${question}', '${type}', '{${options}}') RETURNING id;`);
+  return result.rows[0];
 }
 
 async function add_question_text(question, type) {
-  await client.query(`INSERT INTO questions(question, type)
-                      VALUES ('${question}', '${type}');`);
+  var result = await client.query(`INSERT INTO questions(question, type)
+                      VALUES ('${question}', '${type}') RETURNING id;`);
+  return result.rows[0];
 }
 
 async function deactivate_question(id) {
@@ -384,6 +386,11 @@ async function delete_question(id) {
   await client.query(`DELETE FROM questions WHERE id = ${id};`);
 }
 
+async function get_question_by_id(id) {
+  var result = await client.query(`SELECT * FROM questions WHERE id = '${id}';`);
+  return result.rows;
+}
+
 async function set_current_question_order(order) {
   await client.query(`UPDATE question_orders SET current = FALSE WHERE current = TRUE;`);
   if (await check_value_exists("question_orders", "question_order", `{${order}}`)) {
@@ -391,8 +398,9 @@ async function set_current_question_order(order) {
   } else {
     await client.query(`INSERT INTO question_orders(question_order) VALUES ('{${order}}');`);
   }
+  // set active statuses accordingly
+  await client.query(`UPDATE questions SET active = CASE WHEN id IN (${order}) THEN TRUE ELSE FALSE END;`);
 }
-
 
 // ===== API CALLS ======
 
@@ -755,9 +763,9 @@ app.get('/set_current_question_order', async function (req, res) {
 });
 
 /*
-  http://localhost:3000/get_question_order?id=1
+  http://localhost:3000/get_question_order_by_id?id=1
 */
-app.get('/get_question_order', async function (req, res) {
+app.get('/get_question_order_by_id', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["id"])) {
     result = await get_question_order_by_id(req.query.id);
@@ -770,5 +778,16 @@ app.get('/get_question_order', async function (req, res) {
 */
 app.get('/get_current_question_order', async function (req, res) {
   var result = await get_current_question_order();
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/get_question_by_id?id=1
+*/
+app.get('/get_question_by_id', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    result = await get_question_by_id(req.query.id);
+  }
   send_res(res, result);
 });
