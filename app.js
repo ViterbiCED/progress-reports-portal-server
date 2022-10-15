@@ -158,8 +158,8 @@ INSERT INTO public.mentor_info (id, name, usc_id, email, phone_number, major) VA
 
 INSERT INTO public.mentors_mentees (mentee_id, mentor_id, active) VALUES (1, 1, true);
 
-INSERT INTO public.questions (id, question, type, description, active, options) OVERRIDING SYSTEM VALUE VALUES (1, 'Summary', 'Short answer', 'Summary of the meeting', true, NULL);
-INSERT INTO public.questions (id, question, type, description, active, options) OVERRIDING SYSTEM VALUE VALUES (2, 'Meeting length', 'Multiple choice', 'How long you met for', true, '{"30 minutes","1 hour"}');
+INSERT INTO public.questions (id, question, type, description, active, required, options) OVERRIDING SYSTEM VALUE VALUES (1, 'Summary', 'Short answer', 'Summary of the meeting', true, true, NULL);
+INSERT INTO public.questions (id, question, type, description, active, required, options) OVERRIDING SYSTEM VALUE VALUES (2, 'Meeting length', 'Multiple choice', 'How long you met for', true, true, '{"30 minutes","1 hour"}');
 
 INSERT INTO public.report_content (report_id, question_id, answer) VALUES (1, 1, 'This is our first meeting');
 INSERT INTO public.report_content (report_id, question_id, answer) VALUES (1, 2, '1 hour');
