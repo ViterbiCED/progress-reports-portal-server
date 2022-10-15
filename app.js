@@ -10,10 +10,10 @@ var client;
 // Reset db back to initial state
 async function create_db() {
   await client.query(`
-DROP TABLE if EXISTS public.question_orders;
 DROP TABLE if EXISTS public.report_content;
 DROP TABLE if EXISTS public.questions;
 DROP TABLE if EXISTS public.reports;
+DROP TABLE if EXISTS public.question_orders;
 DROP TABLE if EXISTS public.mentors_mentees;
 DROP TABLE if EXISTS public.mentee_info;
 DROP TABLE if EXISTS public.mentor_info;
