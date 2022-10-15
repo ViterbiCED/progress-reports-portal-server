@@ -86,7 +86,7 @@ CREATE TABLE public.questions (
     id integer NOT NULL,
     question character varying NOT NULL,
     type character varying NOT NULL,
-    description character varying NOT NULL,
+    description character varying,
     active boolean DEFAULT true NOT NULL,
     required boolean DEFAULT true NOT NULL,
     options character varying[]
@@ -365,13 +365,13 @@ async function get_mentor_of_mentee_id(id) {
 
 async function add_question_mc(question, type, description, options) {
   var result = await client.query(`INSERT INTO questions(question, type, description, options)
-                      VALUES ('${question}', '${type}', '${description}', '{${options}}') RETURNING id;`);
+                      VALUES ('${question}', '${type}', ${description}, '{${options}}') RETURNING id;`);
   return result.rows[0];
 }
 
 async function add_question_text(question, type, description) {
   var result = await client.query(`INSERT INTO questions(question, type, description)
-                      VALUES ('${question}', '${type}', '${description}') RETURNING id;`);
+                      VALUES ('${question}', '${type}', ${description}) RETURNING id;`);
   return result.rows[0];
 }
 
@@ -716,14 +716,22 @@ app.get('/get_mentor_of_mentee_id', async function (req, res) {
 */
 app.get('/add_question', async function (req, res) {
   var result = null;
-  if (check_query_params(req.query, ["question", "type", "description", "option"])) {
+  if (check_query_params(req.query, ["question", "type", "option"])) {
     var options = req.query.option;
     if (typeof req.query.option == 'object') {
       options = req.query.option.join('", "');
     }
-    result = await add_question_mc(req.query.question, req.query.type, req.query.description, `"${options}"`);
+    if (check_query_params(req.query, ["question", "type", "description", "option"])) {
+      result = await add_question_mc(req.query.question, req.query.type, "'" + req.query.description + "'", `"${options}"`);
+    }
+    else {
+      result = await add_question_mc(req.query.question, req.query.type, null, `"${options}"`);
+    }
   } else if (check_query_params(req.query, ["question", "type", "description"])) {
-    result = await add_question_text(req.query.question, req.query.type, req.query.description);
+    result = await add_question_text(req.query.question, req.query.type, "'" + req.query.description + "'");
+  }
+  else if (check_query_params(req.query, ["question", "type"])) {
+    result = await add_question_text(req.query.question, req.query.type, null);
   }
   send_res(res, result);
 });
