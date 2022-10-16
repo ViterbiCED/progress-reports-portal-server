@@ -296,9 +296,9 @@ async function find_progress_reports_by_id(mentor_id, mentee_id) {
   return result.rows;
 };
 
-
 async function get_pending_progress_reports() {
-  var result = await client.query(`SELECT name, session_date, approved FROM reports WHERE approved = FALSE;`);
+  var result = await client.query(`SELECT reports.name, reports.session_date, mentor_info.name AS mentor_name, mentee_info.name AS mentee_name
+                                    FROM reports, mentor_info, mentee_info WHERE reports.approved = FALSE AND mentor_info.id = reports.mentor_id AND mentee_info.id = reports.mentee_id;`);
   return result.rows;
 };
 
