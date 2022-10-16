@@ -259,6 +259,16 @@ async function get_mentees_of_mentor_id(id) {
   return result.rows;
 }
 
+async function get_mentee_info_of_mentor(mentor_id) {
+  var result = await client.query(`SELECT mentee_info.id, mentee_info.name, mentee_info.email, COUNT(reports.id) AS number_of_meetings
+                      FROM mentee_info, mentors_mentees, reports
+                      
+                      WHERE mentors_mentees.mentor_id = ${mentor_id} AND mentors_mentees.mentee_id = mentee_info.id AND mentors_mentees.active = true
+                            AND reports.mentor_id=${mentor_id} AND reports.mentee_id = mentee_info.id
+                            GROUP BY mentee_info.id;`);
+  return result.rows;
+}
+
 async function get_question_order_by_id(id) {
   var result = await client.query(`SELECT question_order FROM question_orders WHERE id = '${id}';`);
   return result.rows;
@@ -539,6 +549,17 @@ app.get('/get_mentees_of_mentor_id', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["id"])) {
     result = await get_mentees_of_mentor_id(req.query.id);
+  }
+  send_res(res, result);
+})
+
+/*
+  http://localhost:3000/get_mentee_info_of_mentor?id=1
+*/
+app.get('/get_mentee_info_of_mentor', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    result = await get_mentee_info_of_mentor(req.query.id);
   }
   send_res(res, result);
 })
