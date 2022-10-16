@@ -1,4 +1,4 @@
-var express = require('express');
+var express = require('express'); 
 var app = express();
 
 var pg = require('pg');
@@ -7,13 +7,15 @@ var conString = process.env.DATABASE_URL;
 // var conString = "postgres://zxcvatghlmrxwm:f97710d59a7f20aa2ebaf2695a85b90ac8eece051f48edab0409eb497d983473@ec2-18-204-36-213.compute-1.amazonaws.com:5432/db9khoebffecb";
 var client;
 
+// ===== FUNCTIONS ======
+
 // Reset db back to initial state
 async function create_db() {
   await client.query(`
-DROP TABLE if EXISTS public.question_orders;
 DROP TABLE if EXISTS public.report_content;
 DROP TABLE if EXISTS public.questions;
 DROP TABLE if EXISTS public.reports;
+DROP TABLE if EXISTS public.question_orders;
 DROP TABLE if EXISTS public.mentors_mentees;
 DROP TABLE if EXISTS public.mentee_info;
 DROP TABLE if EXISTS public.mentor_info;
@@ -86,7 +88,9 @@ CREATE TABLE public.questions (
     id integer NOT NULL,
     question character varying NOT NULL,
     type character varying NOT NULL,
+    description character varying,
     active boolean DEFAULT true NOT NULL,
+    required boolean DEFAULT true NOT NULL,
     options character varying[]
 );
 
@@ -156,8 +160,8 @@ INSERT INTO public.mentor_info (id, name, usc_id, email, phone_number, major) VA
 
 INSERT INTO public.mentors_mentees (mentee_id, mentor_id, active) VALUES (1, 1, true);
 
-INSERT INTO public.questions (id, question, type, active, options) OVERRIDING SYSTEM VALUE VALUES (1, 'Summary', 'Short answer', true, NULL);
-INSERT INTO public.questions (id, question, type, active, options) OVERRIDING SYSTEM VALUE VALUES (2, 'Meeting length', 'Multiple choice', true, '{"30 minutes","1 hour"}');
+INSERT INTO public.questions (id, question, type, description, active, required, options) OVERRIDING SYSTEM VALUE VALUES (1, 'Summary', 'Short answer', 'Summary of the meeting', true, true, NULL);
+INSERT INTO public.questions (id, question, type, description, active, required, options) OVERRIDING SYSTEM VALUE VALUES (2, 'Meeting length', 'Multiple choice', 'How long you met for', true, true, '{"30 minutes","1 hour"}');
 
 INSERT INTO public.report_content (report_id, question_id, answer) VALUES (1, 1, 'This is our first meeting');
 INSERT INTO public.report_content (report_id, question_id, answer) VALUES (1, 2, '1 hour');
@@ -315,7 +319,11 @@ async function get_user_roles(email) {
 
 async function get_user_info(id, role) {
   var result = await client.query(`SELECT * FROM ${role}_info WHERE id = ${id};`);
-  return result.rows[0];
+  if (result.rows.length > 0) {
+    return result.rows[0];
+  } else {
+    return result.rows;
+  }
 }
 
 async function search_users_of_table(role, column_name, search_term) {
@@ -371,20 +379,28 @@ async function get_mentor_of_mentee_id(id) {
   return result.rows[0];
 }
 
-async function add_question_mc(question, type, options) {
-  var result = await client.query(`INSERT INTO questions(question, type, options)
-                      VALUES ('${question}', '${type}', '{${options}}') RETURNING id;`);
+async function add_question_mc(question, type, description, options) {
+  var result = await client.query(`INSERT INTO questions(question, type, description, options)
+                      VALUES ('${question}', '${type}', ${description}, '{${options}}') RETURNING id;`);
   return result.rows[0];
 }
 
-async function add_question_text(question, type) {
-  var result = await client.query(`INSERT INTO questions(question, type)
-                      VALUES ('${question}', '${type}') RETURNING id;`);
+async function add_question_text(question, type, description) {
+  var result = await client.query(`INSERT INTO questions(question, type, description)
+                      VALUES ('${question}', '${type}', ${description}) RETURNING id;`);
   return result.rows[0];
 }
 
 async function deactivate_question(id) {
   await client.query(`UPDATE questions SET active = FALSE WHERE id = ${id};`);
+}
+
+async function question_not_required(id) {
+  await client.query(`UPDATE questions SET required = FALSE WHERE id = ${id};`);
+}
+
+async function question_required(id) {
+  await client.query(`UPDATE questions SET required = TRUE WHERE id = ${id};`);
 }
 
 async function add_report_content(report_id, question_id, answer) {
@@ -732,6 +748,8 @@ app.get('/get_mentor_of_mentee_id', async function (req, res) {
 });
 
 /*
+  http://localhost:3000/add_question?question=Meeting number&type=Short answer&description=How many meetings so far
+  http://localhost:3000/add_question?question=Test MC&type=Multiple choice&description=Test question&option=Option 1&option=Option 2&option=Option 3
   http://localhost:3000/add_question?question=Meeting number&type=Short answer
   http://localhost:3000/add_question?question=Test MC&type=Multiple choice&option=Option 1&option=Option 2&option=Option 3
 */
@@ -742,9 +760,17 @@ app.get('/add_question', async function (req, res) {
     if (typeof req.query.option == 'object') {
       options = req.query.option.join('", "');
     }
-    result = await add_question_mc(req.query.question, req.query.type, `"${options}"`);
-  } else if (check_query_params(req.query, ["question", "type"])) {
-    result = await add_question_text(req.query.question, req.query.type);
+    if (check_query_params(req.query, ["question", "type", "description", "option"])) {
+      result = await add_question_mc(req.query.question, req.query.type, "'" + req.query.description + "'", `"${options}"`);
+    }
+    else {
+      result = await add_question_mc(req.query.question, req.query.type, null, `"${options}"`);
+    }
+  } else if (check_query_params(req.query, ["question", "type", "description"])) {
+    result = await add_question_text(req.query.question, req.query.type, "'" + req.query.description + "'");
+  }
+  else if (check_query_params(req.query, ["question", "type"])) {
+    result = await add_question_text(req.query.question, req.query.type, null);
   }
   send_res(res, result);
 });
@@ -756,6 +782,28 @@ app.get('/deactivate_question', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["id"])) {
     result = await deactivate_question(req.query.id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/question_not_required?id=1
+*/
+app.get('/question_not_required', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    result = await question_not_required(req.query.id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/question_required?id=1
+*/
+app.get('/question_required', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    result = await question_required(req.query.id);
   }
   send_res(res, result);
 });
