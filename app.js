@@ -282,6 +282,12 @@ async function find_progress_reports_by_id(mentor_id, mentee_id) {
   return result.rows;
 };
 
+
+async function get_pending_progress_reports() {
+  var result = await client.query(`SELECT name, session_date, approved FROM reports WHERE approved = FALSE;`);
+  return result.rows;
+};
+
 async function approve_progress_report(id) {
   await client.query(`UPDATE reports SET approved = TRUE WHERE id = ${id};`);
 }
@@ -329,6 +335,10 @@ async function search_users(column_name, search_term) {
 async function remove_admin(id) {
   await client.query(`DELETE FROM administrator_info WHERE id = ${id};`);
 }
+
+async function add_mentorship(mentor_id, mentee_id) {
+  await client.query(`INSERT INTO mentors_mentees(mentor_id, mentee_id) VALUES ('${mentor_id}', '${mentee_id}');`);
+};
 
 async function deactivate_mentorship(mentor_id, mentee_id) {
   await client.query(`UPDATE mentors_mentees SET active = FALSE WHERE mentor_id = ${mentor_id} AND mentee_id = ${mentee_id};`);
@@ -552,6 +562,15 @@ app.get('/find_progress_reports_by_id', async function (req, res) {
 });
 
 /*
+  http://localhost:3000/get_pending_progress_reports
+*/
+app.get('/get_pending_progress_reports', async function (req, res) {
+  var result = null;
+  result = await get_pending_progress_reports();
+  send_res(res, result);
+});
+
+/*
   http://localhost:3000/approve_report?id=1
 */
 app.get('/approve_report', async function (req,res) {
@@ -628,6 +647,18 @@ app.get('/remove_admin', async function (req, res) {
   }
   send_res(res, result);
 })
+
+/*
+  http://localhost:3000/add_mentorship?mentor_id=2&mentee_id=1
+*/
+app.get('/add_mentorship', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["mentor_id",, "mentee_id"])) {
+    await add_mentorship(req.query.mentor_id, req.query.mentee_id);
+  }
+  send_res(res, result);
+});
+
 
 /*
   http://localhost:3000/deactivate_mentor_mentee?mentor_id=1&mentee_id=1
