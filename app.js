@@ -313,7 +313,7 @@ async function get_user_roles(email) {
 
 async function get_user_info(id, role) {
   var result = await client.query(`SELECT * FROM ${role}_info WHERE id = ${id};`);
-  return result.rows[0];
+  return result.rows;
 }
 
 async function search_users_of_table(role, column_name, search_term) {
