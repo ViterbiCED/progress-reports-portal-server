@@ -1,6 +1,5 @@
 var express = require('express');
 var app = express();
-
 var pg = require('pg');
 
 var conString = process.env.DATABASE_URL;
