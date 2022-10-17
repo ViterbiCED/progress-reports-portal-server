@@ -302,6 +302,17 @@ async function get_pending_progress_reports() {
   return result.rows;
 };
 
+async function get_progress_report(id) {
+  var result = await client.query(`SELECT reports.name, reports.mentor_id, reports.mentee_id, reports.approved, reports.feedback, reports.session_date, question_orders.question_order FROM reports, question_orders WHERE reports.id = ${id} AND question_orders.id = reports.question_order_id;`);
+
+  // var result = await client.query(`SELECT reports.name, reports.mentor_id, reports.mentee_id, reports.approved, reports.feedback, reports.session_date, question_orders.question_order, questions.question, question
+  
+  
+  // report_content.  FROM reports WHERE id = ${id};`);
+
+  return result.rows;
+};
+
 async function approve_progress_report(id) {
   await client.query(`UPDATE reports SET approved = TRUE WHERE id = ${id};`);
 }
@@ -604,6 +615,17 @@ app.get('/find_progress_reports_by_id', async function (req, res) {
 app.get('/get_pending_progress_reports', async function (req, res) {
   var result = null;
   result = await get_pending_progress_reports();
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/get_progress_report>id=1
+*/
+app.get('/get_progress_report', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    result = await get_progress_report(req.query.id);
+  }
   send_res(res, result);
 });
 
