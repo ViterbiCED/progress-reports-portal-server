@@ -284,7 +284,7 @@ async function add_progress_report(name, mentor_id, mentee_id, session_date) {
 };
 
 async function find_progress_reports_by_name(mentor_name, mentee_name) {
-  var result = await client.query(`SELECT reports.name, reports.session_date, reports.approved FROM reports, mentor_info, mentee_info
+  var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, reports.approved FROM reports, mentor_info, mentee_info
                     WHERE mentor_info.name =  '${mentor_name}' AND reports.mentor_id = mentor_info.id AND mentee_info.name =  '${mentee_name}' AND reports.mentee_id = mentee_info.id;`);
   return result.rows;
 };
@@ -296,13 +296,13 @@ async function find_progress_reports_by_id(mentor_id, mentee_id) {
 };
 
 async function get_pending_progress_reports() {
-  var result = await client.query(`SELECT reports.name, reports.session_date, mentor_info.name AS mentor_name, mentee_info.name AS mentee_name
+  var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, mentor_info.name AS mentor_name, mentee_info.name AS mentee_name
                                     FROM reports, mentor_info, mentee_info WHERE reports.approved = FALSE AND mentor_info.id = reports.mentor_id AND mentee_info.id = reports.mentee_id;`);
   return result.rows;
 };
 
 async function get_report_info(id) {
-  var result = await client.query(`SELECT reports.name, reports.mentor_id, reports.mentee_id, reports.approved, reports.feedback, reports.session_date, question_orders.question_order FROM reports, question_orders WHERE reports.id = ${id} AND question_orders.id = reports.question_order_id;`);
+  var result = await client.query(`SELECT reports.id, reports.name, reports.mentor_id, reports.mentee_id, reports.approved, reports.feedback, reports.session_date, question_orders.question_order FROM reports, question_orders WHERE reports.id = ${id} AND question_orders.id = reports.question_order_id;`);
   if (result.rows.length > 0) {
     return result.rows[0];
   } else {
@@ -632,7 +632,7 @@ app.get('/get_pending_progress_reports', async function (req, res) {
 });
 
 /*
-  http://localhost:3000/get_progress_report>id=1
+  http://localhost:3000/get_progress_report?id=1
 */
 app.get('/get_progress_report', async function (req, res) {
   var result = null;
