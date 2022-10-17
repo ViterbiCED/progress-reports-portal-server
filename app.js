@@ -302,7 +302,7 @@ async function get_pending_progress_reports() {
   return result.rows;
 };
 
-async function get_progress_report_info(id) {
+async function get_report_info(id) {
   var result = await client.query(`SELECT reports.name, reports.mentor_id, reports.mentee_id, reports.approved, reports.feedback, reports.session_date, question_orders.question_order FROM reports, question_orders WHERE reports.id = ${id} AND question_orders.id = reports.question_order_id;`);
   if (result.rows.length > 0) {
     return result.rows[0];
@@ -311,20 +311,20 @@ async function get_progress_report_info(id) {
   }
 }
 
-async function get_progress_report(id) {
-  var result = await client.query(`SELECT reports.name, reports.mentor_id, reports.mentee_id, reports.approved, reports.feedback, reports.session_date, question_orders.question_order FROM reports, question_orders WHERE reports.id = ${id} AND question_orders.id = reports.question_order_id;`);
+async function get_report_questions_answers(id) {
+  // await client.query(`INSERT INTO report_content(report_id, question_id, answer)
 
-  // var result = await client.query(`SELECT question_orders.question_order, questions.question, question
-  // report_content.  FROM reports WHERE id = ${id};`);
-
-
-  // return {
-  //   "mentor": await search_users_of_table("mentor", column_name, search_term),
-  //   "mentee": await search_users_of_table("mentee", column_name, search_term),
-  //   "administrator": await search_users_of_table("administrator", column_name, search_term)
-  // };
-
+  var result = await client.query(`SELECT questions.id AS question_id, questions.question, questions.type, questions.description, questions.required, questions.options, report_content.answer
+  FROM questions, report_content
+  WHERE report_content.report_id = ${id} AND report_content.question_id = questions.id;`);
   return result.rows;
+}
+
+async function get_progress_report(id) {
+  return {
+    "report_info": await get_report_info(id),
+    "questions_answers": await get_report_questions_answers(id)
+  };
 };
 
 async function approve_progress_report(id) {
