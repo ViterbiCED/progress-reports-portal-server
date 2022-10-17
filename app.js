@@ -290,7 +290,7 @@ async function find_progress_reports_by_name(mentor_name, mentee_name) {
 };
 
 async function find_progress_reports_by_id(mentor_id, mentee_id) {
-  var result = await client.query(`SELECT reports.name, reports.session_date, reports.approved FROM reports
+  var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, reports.approved FROM reports
                     WHERE reports.mentor_id = ${mentor_id} AND reports.mentee_id = ${mentee_id};`);
   return result.rows;
 };
