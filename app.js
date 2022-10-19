@@ -462,6 +462,11 @@ async function set_current_question_order(order) {
   await client.query(`UPDATE questions SET active = CASE WHEN id IN (${order}) THEN TRUE ELSE FALSE END;`);
 }
 
+async function get_current_questions() {
+  var result = await client.query(`SELECT * FROM questions WHERE active = TRUE;`);
+  return result.rows;
+}
+
 // ===== API CALLS ======
 
 function send_res(res, result) {
@@ -924,5 +929,13 @@ app.get('/get_question_by_id', async function (req, res) {
   if (check_query_params(req.query, ["id"])) {
     result = await get_question_by_id(req.query.id);
   }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/get_current_questions
+*/
+app.get('/get_current_questions', async function (req, res) {
+  result = await get_current_questions();
   send_res(res, result);
 });
