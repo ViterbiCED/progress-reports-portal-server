@@ -413,15 +413,15 @@ async function get_mentor_of_mentee_id(id) {
   return result.rows[0];
 }
 
-async function add_question_mc(question, type, description, options) {
-  var result = await client.query(`INSERT INTO questions(question, type, description, options)
-                      VALUES ('${question}', '${type}', ${description}, '{${options}}') RETURNING id;`);
+async function add_question_mc(question, type, description, options, required) {
+  var result = await client.query(`INSERT INTO questions(question, type, description, options, required)
+                      VALUES ('${question}', '${type}', ${description}, '{${options}}', '${required}') RETURNING id;`);
   return result.rows[0];
 }
 
-async function add_question_text(question, type, description) {
-  var result = await client.query(`INSERT INTO questions(question, type, description)
-                      VALUES ('${question}', '${type}', ${description}) RETURNING id;`);
+async function add_question_text(question, type, description, required) {
+  var result = await client.query(`INSERT INTO questions(question, type, description, required)
+                      VALUES ('${question}', '${type}', ${description}, '${required}') RETURNING id;`);
   return result.rows[0];
 }
 
@@ -766,7 +766,7 @@ app.get('/activate_mentor_mentee', async function (req, res) {
 });
 
 /*
-  http://localhost:3000/activate_mentor_mentee?mentor_id=1
+  http://localhost:3000/activate_mentorship_mentor?mentor_id=1
 */
 app.get('/activate_mentorship_mentor', async function (req, res) {
   var result = null;
@@ -804,29 +804,29 @@ app.get('/get_mentor_of_mentee_id', async function (req, res) {
 });
 
 /*
-  http://localhost:3000/add_question?question=Meeting number&type=Short answer&description=How many meetings so far
-  http://localhost:3000/add_question?question=Test MC&type=Multiple choice&description=Test question&option=Option 1&option=Option 2&option=Option 3
-  http://localhost:3000/add_question?question=Meeting number&type=Short answer
-  http://localhost:3000/add_question?question=Test MC&type=Multiple choice&option=Option 1&option=Option 2&option=Option 3
+  http://localhost:3000/add_question?question=Meeting number&type=Short answer&description=How many meetings so far&required=True
+  http://localhost:3000/add_question?question=Test MC&type=Multiple choice&description=Test question&option=Option 1&option=Option 2&option=Option 3&required=True
+  http://localhost:3000/add_question?question=Meeting number&type=Short answer&required=True
+  http://localhost:3000/add_question?question=Test MC&type=Multiple choice&option=Option 1&option=Option 2&option=Option 3&required=True
 */
 app.get('/add_question', async function (req, res) {
   var result = null;
-  if (check_query_params(req.query, ["question", "type", "option"])) {
+  if (check_query_params(req.query, ["question", "type", "option", "required"])) {
     var options = req.query.option;
     if (typeof req.query.option == 'object') {
       options = req.query.option.join('", "');
     }
-    if (check_query_params(req.query, ["question", "type", "description", "option"])) {
-      result = await add_question_mc(req.query.question, req.query.type, "'" + req.query.description + "'", `"${options}"`);
+    if (check_query_params(req.query, ["question", "type", "description", "option", "required"])) {
+      result = await add_question_mc(req.query.question, req.query.type, "'" + req.query.description + "'", `"${options}"`, req.query.required);
     }
     else {
-      result = await add_question_mc(req.query.question, req.query.type, null, `"${options}"`);
+      result = await add_question_mc(req.query.question, req.query.type, null, `"${options}"`, req.query.required);
     }
-  } else if (check_query_params(req.query, ["question", "type", "description"])) {
-    result = await add_question_text(req.query.question, req.query.type, "'" + req.query.description + "'");
+  } else if (check_query_params(req.query, ["question", "type", "description", "required"])) {
+    result = await add_question_text(req.query.question, req.query.type, "'" + req.query.description + "'", req.query.required);
   }
-  else if (check_query_params(req.query, ["question", "type"])) {
-    result = await add_question_text(req.query.question, req.query.type, null);
+  else if (check_query_params(req.query, ["question", "type", "required"])) {
+    result = await add_question_text(req.query.question, req.query.type, null, req.query.required);
   }
   send_res(res, result);
 });
