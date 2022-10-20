@@ -279,8 +279,9 @@ async function get_current_question_order() {
 }
 
 async function add_progress_report(name, mentor_id, mentee_id, session_date) {
-  await client.query(`INSERT INTO reports(name, mentor_id, mentee_id, session_date, question_order_id)
+  var result = await client.query(`INSERT INTO reports(name, mentor_id, mentee_id, session_date, question_order_id)
                       VALUES ('${name}', '${mentor_id}', '${mentee_id}', '${session_date}', '${(await get_current_question_order()).id}') RETURNING id;`);
+  return result.rows[0];
 };
 
 async function find_progress_reports_by_name(mentor_name, mentee_name) {
@@ -599,8 +600,7 @@ app.get('/get_mentee_info_of_mentor', async function (req, res) {
 app.get('/add_progress_report', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["name", "mentor_id", "mentee_id", "session_date"])) {
-    await add_progress_report(req.query.name, req.query.mentor_id, req.query.mentee_id, req.query.session_date);
-    result = await select_table("reports");
+    result = await add_progress_report(req.query.name, req.query.mentor_id, req.query.mentee_id, req.query.session_date);
   }
   send_res(res, result);
 });
