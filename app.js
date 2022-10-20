@@ -336,8 +336,8 @@ async function add_feedback(id, feedback) {
 }
 
 async function remove_progress_report(id) {
-  await client.query(`DELETE FROM reports WHERE id = ${id};`);
   await client.query(`DELETE FROM report_content WHERE report_id = ${id};`);
+  await client.query(`DELETE FROM reports WHERE id = ${id};`);
 }
 
 async function check_value_exists(table_name, column_name, value) {
@@ -680,7 +680,7 @@ app.get('/add_feedback', async function (req,res) {
 app.get('/remove_progress_report', async function (req,res) {
   var result = null;
   if (check_query_params(req.query, ["id"])) {
-    result = await remove_progress_report(req.query.id);
+    await remove_progress_report(req.query.id);
   }
   send_res(res, result);
 });
