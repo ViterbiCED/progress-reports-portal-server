@@ -280,7 +280,7 @@ async function get_current_question_order() {
 
 async function add_progress_report(name, mentor_id, mentee_id, session_date) {
   await client.query(`INSERT INTO reports(name, mentor_id, mentee_id, session_date, question_order_id)
-                      VALUES ('${name}', '${mentor_id}', '${mentee_id}', '${session_date}', '${(await get_current_question_order()).id}');`);
+                      VALUES ('${name}', '${mentor_id}', '${mentee_id}', '${session_date}', '${(await get_current_question_order()).id}') RETURNING id;`);
 };
 
 async function find_progress_reports_by_name(mentor_name, mentee_name) {
