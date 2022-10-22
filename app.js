@@ -409,6 +409,12 @@ async function get_active_mentee_ids() {
   return result.rows;
 }
 
+async function get_active_mentors() {
+  var result = await client.query(`SELECT DISTINCT mentors_mentees.mentor_id, mentor_info.name FROM mentors_mentees, mentor_info
+                                    WHERE mentors_mentees.active = true AND mentors_mentees.mentor_id = mentor_info.id;`);
+  return result.rows;
+}
+
 async function get_active_mentorships() {
   var result = await client.query(`SELECT mentee_id, mentor_id FROM mentors_mentees WHERE active = true;`);
   return result.rows;
@@ -802,6 +808,14 @@ app.get('/activate_mentorship_mentor', async function (req, res) {
 */
 app.get('/get_active_mentee_ids', async function (req, res) {
   var result = await get_active_mentee_ids();
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/get_active_mentors
+*/
+app.get('/get_active_mentors', async function (req, res) {
+  var result = await get_active_mentors();
   send_res(res, result);
 });
 
