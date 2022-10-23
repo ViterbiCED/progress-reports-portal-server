@@ -341,20 +341,25 @@ async function remove_progress_report(id) {
 }
 
 async function check_value_exists(table_name, column_name, value) {
-  var result = await client.query(`SELECT EXISTS(SELECT 1 FROM ${table_name} WHERE ${column_name} = '${value}');`);
-  return result.rows[0].exists;
+  var result = await client.query(`SELECT id FROM ${table_name} WHERE ${column_name} = '${value}';`);
+  return result.rows;
 }
 
 async function get_user_roles(email) {
   var role = "invalid";
-  if (await check_value_exists("administrator_info", "email", email)) {
+  var result;
+  var id = -1;
+  if ((result = await check_value_exists("administrator_info", "email", email)).length > 0) {
     role = "administrator";
-  } else if (await check_value_exists("mentor_info", "email", email)) {
+    id = result[0].id;
+  } else if ((result = await check_value_exists("mentor_info", "email", email)).length > 0) {
     role = "mentor";
-  } else if (await check_value_exists("mentee_info", "email", email)) {
+    id = result[0].id;
+  } else if ((result = await check_value_exists("mentee_info", "email", email)).length > 0) {
     role = "mentee";
+    id = result[0].id;
   }
-  return {"role": role};
+  return {"role": role, "id": id};
 };
 
 async function get_user_info(id, role) {
