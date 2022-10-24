@@ -400,6 +400,10 @@ async function deactivate_mentorship_by_mentor(mentor_id) {
   await client.query(`UPDATE mentors_mentees SET active = FALSE WHERE mentor_id = ${mentor_id};`);
 }
 
+async function deactivate_mentorship_by_mentee(mentee_id) {
+  await client.query(`UPDATE mentors_mentees SET active = FALSE WHERE mentee_id = ${mentee_id};`);
+}
+
 async function activate_mentorship(mentor_id, mentee_id) {
   await client.query(`UPDATE mentors_mentees SET active = TRUE WHERE mentor_id = ${mentor_id} AND mentee_id = ${mentee_id};`);
 }
@@ -541,6 +545,14 @@ app.get('/add_admin', async function (req, res) {
     if (check.role == "invalid") {
       await add_admin(req.query.name, req.query.email);
       result = await select_table("administrator_info");
+    } else if (check.role == "mentor") {
+      await deactivate_mentorship_by_mentor(check.id);
+      await add_admin(req.query.name, req.query.email);
+      result = await select_table("administrator_info");
+    } else if (check.role == "mentee") {
+      await deactivate_mentorship_by_mentee(check.id);
+      await add_admin(req.query.name, req.query.email);
+      result = await select_table("administrator_info");
     }
   }
   send_res(res, result);
@@ -554,6 +566,10 @@ app.get('/add_mentor', async function (req, res) {
   if (check_query_params(req.query, ["name", "usc_id", "email", "phone_number", "major"])) {
     var check = await get_user_roles(req.query.email);
     if (check.role == "invalid") {
+      await add_mentor(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major);
+      result = await select_table("mentor_info");
+    } else if (check.role == "mentee") {
+      await deactivate_mentorship_by_mentee(check.id);
       await add_mentor(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major);
       result = await select_table("mentor_info");
     }
