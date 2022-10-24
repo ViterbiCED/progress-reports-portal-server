@@ -259,12 +259,11 @@ async function get_mentees_of_mentor_id(id) {
 }
 
 async function get_mentee_info_of_mentor(mentor_id) {
-  var result = await client.query(`SELECT mentee_info.id, mentee_info.name, mentee_info.email, COUNT(reports.id) AS number_of_meetings
+  var result = await client.query(`SELECT mentee_info.id, mentee_info.name, mentee_info.email,
+                      SUM(CASE WHEN reports.mentor_id=${mentor_id} AND reports.mentee_id = mentee_info.id THEN 1 ELSE 0 END) AS number_of_meetings
                       FROM mentee_info, mentors_mentees, reports
-                      
                       WHERE mentors_mentees.mentor_id = ${mentor_id} AND mentors_mentees.mentee_id = mentee_info.id AND mentors_mentees.active = true
-                            AND reports.mentor_id=${mentor_id} AND reports.mentee_id = mentee_info.id
-                            GROUP BY mentee_info.id;`);
+                      GROUP BY mentee_info.id;`);
   return result.rows;
 }
 
