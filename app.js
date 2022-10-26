@@ -295,6 +295,11 @@ async function find_progress_reports_by_id(mentor_id, mentee_id) {
   return result.rows;
 };
 
+async function find_progress_reports_by_mentee_id(mentee_id) {
+  var result = await client.query(`SELECT reports.id FROM reports WHERE reports.mentee_id = ${mentee_id};`);
+  return result.rows;
+};
+
 async function get_pending_progress_reports() {
   var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, mentor_info.name AS mentor_name, mentee_info.name AS mentee_name
                                     FROM reports, mentor_info, mentee_info WHERE reports.approved = FALSE AND mentor_info.id = reports.mentor_id AND mentee_info.id = reports.mentee_id;`);
@@ -654,6 +659,17 @@ app.get('/find_progress_reports_by_id', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["mentor_id", "mentee_id"])) {
     result = await find_progress_reports_by_id(req.query.mentor_id, req.query.mentee_id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/find_progress_reports_by_mentee_id?mentee_id=1
+*/
+app.get('/find_progress_reports_by_mentee_id', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["mentee_id"])) {
+    result = await find_progress_reports_by_mentee_id(req.query.mentee_id);
   }
   send_res(res, result);
 });
