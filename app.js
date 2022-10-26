@@ -64,7 +64,8 @@ CREATE TABLE public.mentor_info (
     usc_id bigint NOT NULL,
     email character varying NOT NULL,
     phone_number bigint NOT NULL,
-    major character varying NOT NULL
+    major character varying NOT NULL,
+    active boolean DEFAULT true
 );
 
 CREATE SEQUENCE public.mentor_info_id_seq
@@ -417,14 +418,22 @@ async function activate_mentorship_by_mentor(mentor_id) {
   await client.query(`UPDATE mentors_mentees SET active = TRUE WHERE mentor_id = ${mentor_id};`);
 }
 
+async function activate_mentor(mentor_id) {
+  await client.query(`UPDATE mentor_info SET active = TRUE WHERE id = ${mentor_id};`);
+}
+
+async function deactivate_mentor(mentor_id) {
+  await client.query(`UPDATE mentor_info SET active = FALSE WHERE id = ${mentor_id};`);
+  await client.query(`UPDATE mentors_mentees SET active = FALSE WHERE mentor_id = ${mentor_id};`);
+}
+
 async function get_active_mentee_ids() {
   var result = await client.query(`SELECT mentee_id FROM mentors_mentees WHERE active = true;`);
   return result.rows;
 }
 
 async function get_active_mentors() {
-  var result = await client.query(`SELECT DISTINCT mentors_mentees.mentor_id, mentor_info.name FROM mentors_mentees, mentor_info
-                                    WHERE mentors_mentees.active = true AND mentors_mentees.mentor_id = mentor_info.id;`);
+  var result = await client.query(`SELECT id, name FROM mentor_info WHERE active = TRUE;`);
   return result.rows;
 }
 
@@ -522,6 +531,12 @@ app.listen(process.env.PORT || 3000, async function () {
   await client.connect();
   console.log("client connected")
 });
+
+app.get('/temp_add_col', async function (req, res) {
+  await temp_add_col();
+  var result = await select_table("mentor_info");
+  send_res(res, result);
+})
 
 /*
   http://localhost:3000/create_db
@@ -870,6 +885,28 @@ app.get('/get_mentor_of_mentee_id', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["id"])) {
     result = await get_mentor_of_mentee_id(req.query.id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/activate_mentor?mentor_id=1
+*/
+app.get('/activate_mentor', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["mentor_id"])) {
+    result = await activate_mentor(req.query.mentor_id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/deactivate_mentor?mentor_id=1
+*/
+app.get('/deactivate_mentor', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["mentor_id"])) {
+    result = await deactivate_mentor(req.query.mentor_id);
   }
   send_res(res, result);
 });
