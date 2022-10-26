@@ -225,6 +225,10 @@ ALTER TABLE ONLY public.reports
   `);
 };
 
+async function temp_add_col() {
+  await client.query(`ALTER TABLE reports ADD COLUMN submission_date date DEFAULT CURRENT_TIMESTAMP;`);
+}
+
 async function select_table(name) {
   const result = await client.query(`SELECT * from ${name};`);
   console.log(result.rows);
