@@ -874,6 +874,28 @@ app.get('/get_mentor_of_mentee_id', async function (req, res) {
 });
 
 /*
+  http://localhost:3000/activate_mentor?mentor_id=1
+*/
+app.get('/activate_mentor', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["mentor_id"])) {
+    result = await activate_mentor(req.query.mentor_id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/deactivate_mentor?mentor_id=1
+*/
+app.get('/deactivate_mentor', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["mentor_id"])) {
+    result = await deactivate_mentor(req.query.mentor_id);
+  }
+  send_res(res, result);
+});
+
+/*
   http://localhost:3000/add_question?question=Meeting number&type=Short answer&description=How many meetings so far&required=True
   http://localhost:3000/add_question?question=Test MC&type=Multiple choice&description=Test question&option=Option 1&option=Option 2&option=Option 3&required=True
   http://localhost:3000/add_question?question=Meeting number&type=Short answer&required=True
