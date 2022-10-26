@@ -224,6 +224,10 @@ ALTER TABLE ONLY public.reports
   `);
 };
 
+async function temp_add_col() {
+  await client.query(`ALTER TABLE public.mentor_info ADD COLUMN active boolean DEFAULT true;`);
+}
+
 async function select_table(name) {
   const result = await client.query(`SELECT * from ${name};`);
   console.log(result.rows);
@@ -517,6 +521,12 @@ app.listen(process.env.PORT || 3000, async function () {
   await client.connect();
   console.log("client connected")
 });
+
+app.get('/temp_add_col', async function (req, res) {
+  await temp_add_col();
+  var result = await select_table("mentor_info");
+  send_res(res, result);
+})
 
 /*
   http://localhost:3000/create_db
