@@ -64,7 +64,8 @@ CREATE TABLE public.mentor_info (
     usc_id bigint NOT NULL,
     email character varying NOT NULL,
     phone_number bigint NOT NULL,
-    major character varying NOT NULL
+    major character varying NOT NULL,
+    active boolean DEFAULT true
 );
 
 CREATE SEQUENCE public.mentor_info_id_seq
@@ -223,10 +224,6 @@ ALTER TABLE ONLY public.reports
 
   `);
 };
-
-async function temp_add_col() {
-  await client.query(`ALTER TABLE public.mentor_info ADD COLUMN active boolean DEFAULT true;`);
-}
 
 async function select_table(name) {
   const result = await client.query(`SELECT * from ${name};`);
@@ -416,14 +413,22 @@ async function activate_mentorship_by_mentor(mentor_id) {
   await client.query(`UPDATE mentors_mentees SET active = TRUE WHERE mentor_id = ${mentor_id};`);
 }
 
+async function activate_mentor(mentor_id) {
+  await client.query(`UPDATE mentor_info SET active = TRUE WHERE id = ${mentor_id};`);
+}
+
+async function deactivate_mentor(mentor_id) {
+  await client.query(`UPDATE mentor_info SET active = FALSE WHERE id = ${mentor_id};`);
+  await client.query(`UPDATE mentors_mentees SET active = FALSE WHERE mentor_id = ${mentor_id};`);
+}
+
 async function get_active_mentee_ids() {
   var result = await client.query(`SELECT mentee_id FROM mentors_mentees WHERE active = true;`);
   return result.rows;
 }
 
 async function get_active_mentors() {
-  var result = await client.query(`SELECT DISTINCT mentors_mentees.mentor_id, mentor_info.name FROM mentors_mentees, mentor_info
-                                    WHERE mentors_mentees.active = true AND mentors_mentees.mentor_id = mentor_info.id;`);
+  var result = await client.query(`SELECT id, name FROM mentor_info WHERE active = TRUE;`);
   return result.rows;
 }
 
