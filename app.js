@@ -64,7 +64,8 @@ CREATE TABLE public.mentor_info (
     usc_id bigint NOT NULL,
     email character varying NOT NULL,
     phone_number bigint NOT NULL,
-    major character varying NOT NULL
+    major character varying NOT NULL,
+    active boolean DEFAULT true
 );
 
 CREATE SEQUENCE public.mentor_info_id_seq
@@ -116,7 +117,8 @@ CREATE TABLE public.reports (
     feedback character varying,
     session_date date NOT NULL,
     name character varying NOT NULL,
-    question_order_id integer NOT NULL
+    question_order_id integer NOT NULL,
+    submission_date date DEFAULT CURRENT_TIMESTAMP
 );
 
 ALTER TABLE public.reports ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
@@ -259,12 +261,11 @@ async function get_mentees_of_mentor_id(id) {
 }
 
 async function get_mentee_info_of_mentor(mentor_id) {
-  var result = await client.query(`SELECT mentee_info.id, mentee_info.name, mentee_info.email, COUNT(reports.id) AS number_of_meetings
+  var result = await client.query(`SELECT mentee_info.id, mentee_info.name, mentee_info.email,
+                      SUM(CASE WHEN reports.mentor_id=${mentor_id} AND reports.mentee_id = mentee_info.id THEN 1 ELSE 0 END) AS number_of_meetings
                       FROM mentee_info, mentors_mentees, reports
-                      
                       WHERE mentors_mentees.mentor_id = ${mentor_id} AND mentors_mentees.mentee_id = mentee_info.id AND mentors_mentees.active = true
-                            AND reports.mentor_id=${mentor_id} AND reports.mentee_id = mentee_info.id
-                            GROUP BY mentee_info.id;`);
+                      GROUP BY mentee_info.id;`);
   return result.rows;
 }
 
@@ -285,25 +286,30 @@ async function add_progress_report(name, mentor_id, mentee_id, session_date) {
 };
 
 async function find_progress_reports_by_name(mentor_name, mentee_name) {
-  var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, reports.approved FROM reports, mentor_info, mentee_info
+  var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, reports.approved, reports.submission_date FROM reports, mentor_info, mentee_info
                     WHERE mentor_info.name =  '${mentor_name}' AND reports.mentor_id = mentor_info.id AND mentee_info.name =  '${mentee_name}' AND reports.mentee_id = mentee_info.id;`);
   return result.rows;
 };
 
 async function find_progress_reports_by_id(mentor_id, mentee_id) {
-  var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, reports.approved FROM reports
+  var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, reports.approved, reports.submission_date FROM reports
                     WHERE reports.mentor_id = ${mentor_id} AND reports.mentee_id = ${mentee_id};`);
   return result.rows;
 };
 
+async function find_progress_reports_by_mentee_id(mentee_id) {
+  var result = await client.query(`SELECT reports.id FROM reports WHERE reports.mentee_id = ${mentee_id};`);
+  return result.rows;
+};
+
 async function get_pending_progress_reports() {
-  var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, mentor_info.name AS mentor_name, mentee_info.name AS mentee_name
+  var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, reports.submission_date, mentor_info.name AS mentor_name, mentee_info.name AS mentee_name
                                     FROM reports, mentor_info, mentee_info WHERE reports.approved = FALSE AND mentor_info.id = reports.mentor_id AND mentee_info.id = reports.mentee_id;`);
   return result.rows;
 };
 
 async function get_report_info(id) {
-  var result = await client.query(`SELECT reports.id, reports.name, reports.mentor_id, reports.mentee_id, reports.approved, reports.feedback, reports.session_date, question_orders.question_order FROM reports, question_orders WHERE reports.id = ${id} AND question_orders.id = reports.question_order_id;`);
+  var result = await client.query(`SELECT reports.id, reports.name, reports.mentor_id, reports.mentee_id, reports.approved, reports.feedback, reports.session_date, reports.submission_date, question_orders.question_order FROM reports, question_orders WHERE reports.id = ${id} AND question_orders.id = reports.question_order_id;`);
   if (result.rows.length > 0) {
     return result.rows[0];
   } else {
@@ -341,20 +347,25 @@ async function remove_progress_report(id) {
 }
 
 async function check_value_exists(table_name, column_name, value) {
-  var result = await client.query(`SELECT EXISTS(SELECT 1 FROM ${table_name} WHERE ${column_name} = '${value}');`);
-  return result.rows[0].exists;
+  var result = await client.query(`SELECT id FROM ${table_name} WHERE ${column_name} = '${value}';`);
+  return result.rows;
 }
 
 async function get_user_roles(email) {
   var role = "invalid";
-  if (await check_value_exists("administrator_info", "email", email)) {
+  var result;
+  var id = -1;
+  if ((result = await check_value_exists("administrator_info", "email", email)).length > 0) {
     role = "administrator";
-  } else if (await check_value_exists("mentor_info", "email", email)) {
+    id = result[0].id;
+  } else if ((result = await check_value_exists("mentor_info", "email", email)).length > 0) {
     role = "mentor";
-  } else if (await check_value_exists("mentee_info", "email", email)) {
+    id = result[0].id;
+  } else if ((result = await check_value_exists("mentee_info", "email", email)).length > 0) {
     role = "mentee";
+    id = result[0].id;
   }
-  return {"role": role};
+  return {"role": role, "id": id};
 };
 
 async function get_user_info(id, role) {
@@ -396,6 +407,10 @@ async function deactivate_mentorship_by_mentor(mentor_id) {
   await client.query(`UPDATE mentors_mentees SET active = FALSE WHERE mentor_id = ${mentor_id};`);
 }
 
+async function deactivate_mentorship_by_mentee(mentee_id) {
+  await client.query(`UPDATE mentors_mentees SET active = FALSE WHERE mentee_id = ${mentee_id};`);
+}
+
 async function activate_mentorship(mentor_id, mentee_id) {
   await client.query(`UPDATE mentors_mentees SET active = TRUE WHERE mentor_id = ${mentor_id} AND mentee_id = ${mentee_id};`);
 }
@@ -404,14 +419,22 @@ async function activate_mentorship_by_mentor(mentor_id) {
   await client.query(`UPDATE mentors_mentees SET active = TRUE WHERE mentor_id = ${mentor_id};`);
 }
 
+async function activate_mentor(mentor_id) {
+  await client.query(`UPDATE mentor_info SET active = TRUE WHERE id = ${mentor_id};`);
+}
+
+async function deactivate_mentor(mentor_id) {
+  await client.query(`UPDATE mentor_info SET active = FALSE WHERE id = ${mentor_id};`);
+  await client.query(`UPDATE mentors_mentees SET active = FALSE WHERE mentor_id = ${mentor_id};`);
+}
+
 async function get_active_mentee_ids() {
   var result = await client.query(`SELECT mentee_id FROM mentors_mentees WHERE active = true;`);
   return result.rows;
 }
 
 async function get_active_mentors() {
-  var result = await client.query(`SELECT DISTINCT mentors_mentees.mentor_id, mentor_info.name FROM mentors_mentees, mentor_info
-                                    WHERE mentors_mentees.active = true AND mentors_mentees.mentor_id = mentor_info.id;`);
+  var result = await client.query(`SELECT id, name FROM mentor_info WHERE active = TRUE;`);
   return result.rows;
 }
 
@@ -510,6 +533,12 @@ app.listen(process.env.PORT || 3000, async function () {
   console.log("client connected")
 });
 
+app.get('/temp_add_col', async function (req, res) {
+  await temp_add_col();
+  var result = await select_table("mentor_info");
+  send_res(res, result);
+})
+
 /*
   http://localhost:3000/create_db
 */
@@ -537,6 +566,14 @@ app.get('/add_admin', async function (req, res) {
     if (check.role == "invalid") {
       await add_admin(req.query.name, req.query.email);
       result = await select_table("administrator_info");
+    } else if (check.role == "mentor") {
+      await deactivate_mentorship_by_mentor(check.id);
+      await add_admin(req.query.name, req.query.email);
+      result = await select_table("administrator_info");
+    } else if (check.role == "mentee") {
+      await deactivate_mentorship_by_mentee(check.id);
+      await add_admin(req.query.name, req.query.email);
+      result = await select_table("administrator_info");
     }
   }
   send_res(res, result);
@@ -550,6 +587,10 @@ app.get('/add_mentor', async function (req, res) {
   if (check_query_params(req.query, ["name", "usc_id", "email", "phone_number", "major"])) {
     var check = await get_user_roles(req.query.email);
     if (check.role == "invalid") {
+      await add_mentor(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major);
+      result = await select_table("mentor_info");
+    } else if (check.role == "mentee") {
+      await deactivate_mentorship_by_mentee(check.id);
       await add_mentor(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major);
       result = await select_table("mentor_info");
     }
@@ -634,6 +675,17 @@ app.get('/find_progress_reports_by_id', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["mentor_id", "mentee_id"])) {
     result = await find_progress_reports_by_id(req.query.mentor_id, req.query.mentee_id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/find_progress_reports_by_mentee_id?mentee_id=1
+*/
+app.get('/find_progress_reports_by_mentee_id', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["mentee_id"])) {
+    result = await find_progress_reports_by_mentee_id(req.query.mentee_id);
   }
   send_res(res, result);
 });
@@ -834,6 +886,28 @@ app.get('/get_mentor_of_mentee_id', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["id"])) {
     result = await get_mentor_of_mentee_id(req.query.id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/activate_mentor?mentor_id=1
+*/
+app.get('/activate_mentor', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["mentor_id"])) {
+    result = await activate_mentor(req.query.mentor_id);
+  }
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/deactivate_mentor?mentor_id=1
+*/
+app.get('/deactivate_mentor', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["mentor_id"])) {
+    result = await deactivate_mentor(req.query.mentor_id);
   }
   send_res(res, result);
 });
