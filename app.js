@@ -2,8 +2,7 @@ var express = require('express');
 var app = express();
 var pg = require('pg');
 
-var conString = process.env.DATABASE_URL;
-// var conString = "postgres://zxcvatghlmrxwm:f97710d59a7f20aa2ebaf2695a85b90ac8eece051f48edab0409eb497d983473@ec2-18-204-36-213.compute-1.amazonaws.com:5432/db9khoebffecb";
+var conString = process.env.DATABASE_URL ? process.env.DATABASE_URL : "postgres://zxcvatghlmrxwm:f97710d59a7f20aa2ebaf2695a85b90ac8eece051f48edab0409eb497d983473@ec2-18-204-36-213.compute-1.amazonaws.com:5432/db9khoebffecb";
 var client;
 
 // ===== FUNCTIONS ======
@@ -605,7 +604,7 @@ app.get('/add_mentee', async function (req, res) {
   if (check_query_params(req.query, ["name", "usc_id", "email", "phone_number", "major", "freshman", "semester_entered"])) {
     var check = await get_user_roles(req.query.email);
     if (check.role == "invalid") {
-      await add_mentee(req.query.name, req.query.usc_id, req.query.email, req.query.phone_number, req.query.major, req.query.freshman, req.query.semester_entered);
+      await add_mentee(req.query.name.replace("'", "''"), req.query.usc_id, req.query.email.replace("'", "''"), req.query.phone_number, req.query.major.replace("'", "''"), req.query.freshman, req.query.semester_entered.replace("'", "''"));
       result = await select_table("mentee_info");
     }
   }
@@ -618,7 +617,7 @@ app.get('/add_mentee', async function (req, res) {
 app.get('/get_mentees_of_mentor_name', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["name"])) {
-    result = await get_mentees_of_mentor_name(req.query.name);
+    result = await get_mentees_of_mentor_name(req.query.name.replace("'", "''"));
   }
   send_res(res, result);
 });
@@ -651,7 +650,7 @@ app.get('/get_mentee_info_of_mentor', async function (req, res) {
 app.get('/add_progress_report', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["name", "mentor_id", "mentee_id", "session_date"])) {
-    result = await add_progress_report(req.query.name, req.query.mentor_id, req.query.mentee_id, req.query.session_date);
+    result = await add_progress_report(req.query.name.replace("'", "''"), req.query.mentor_id, req.query.mentee_id, req.query.session_date);
   }
   send_res(res, result);
 });
@@ -662,7 +661,7 @@ app.get('/add_progress_report', async function (req, res) {
 app.get('/find_progress_reports_by_name', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["mentor_name", "mentee_name"])) {
-    result = await find_progress_reports_by_name(req.query.mentor_name, req.query.mentee_name);
+    result = await find_progress_reports_by_name(req.query.mentor_name.replace("'", "''"), req.query.mentee_name.replace("'", "''"));
   }
   send_res(res, result);
 });
@@ -726,7 +725,7 @@ app.get('/approve_report', async function (req,res) {
 app.get('/add_feedback', async function (req,res) {
   var result = null;
   if (check_query_params(req.query, ["id", "feedback"])) {
-    result = await add_feedback(req.query.id, req.query.feedback);
+    result = await add_feedback(req.query.id, req.query.feedback.replace("'", "''"));
   }
   send_res(res, result);
 });
@@ -748,7 +747,7 @@ app.get('/remove_progress_report', async function (req,res) {
 app.get('/get_user_roles', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["email"])) {
-    result = await get_user_roles(req.query.email);
+    result = await get_user_roles(req.query.email.replace("'", "''"));
   }
   send_res(res, result);
 });
@@ -770,7 +769,7 @@ app.get('/get_user_info', async function (req, res) {
 app.get('/search_users_by_name', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["name"])) {
-    result = await search_users("name", req.query.name);
+    result = await search_users("name", req.query.name.replace("'", "''"));
   }
   send_res(res, result);
 });
@@ -781,7 +780,7 @@ app.get('/search_users_by_name', async function (req, res) {
 app.get('/search_users_by_email', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["email"])) {
-    result = await search_users("email", req.query.email);
+    result = await search_users("email", req.query.email.replace("'", "''"));
   }
   send_res(res, result);
 });
@@ -922,19 +921,19 @@ app.get('/add_question', async function (req, res) {
   if (check_query_params(req.query, ["question", "type", "option", "required"])) {
     var options = req.query.option;
     if (typeof req.query.option == 'object') {
-      options = req.query.option.join('", "');
+      options = req.query.option.join('", "').replace("'", "''");
     }
     if (check_query_params(req.query, ["question", "type", "description", "option", "required"])) {
-      result = await add_question_mc(req.query.question, req.query.type, "'" + req.query.description + "'", `"${options}"`, req.query.required);
+      result = await add_question_mc(req.query.question.replace("'", "''"), req.query.type.replace("'", "''"), "'" + req.query.description.replace("'", "''") + "'", `"${options}"`, req.query.required);
     }
     else {
-      result = await add_question_mc(req.query.question, req.query.type, null, `"${options}"`, req.query.required);
+      result = await add_question_mc(req.query.question.replace("'", "''"), req.query.type.replace("'", "''"), null, `"${options}"`, req.query.required);
     }
   } else if (check_query_params(req.query, ["question", "type", "description", "required"])) {
-    result = await add_question_text(req.query.question, req.query.type, "'" + req.query.description + "'", req.query.required);
+    result = await add_question_text(req.query.question.replace("'", "''"), req.query.type.replace("'", "''"), "'" + req.query.description.replace("'", "''") + "'", req.query.required);
   }
   else if (check_query_params(req.query, ["question", "type", "required"])) {
-    result = await add_question_text(req.query.question, req.query.type, null, req.query.required);
+    result = await add_question_text(req.query.question.replace("'", "''"), req.query.type.replace("'", "''"), null, req.query.required);
   }
   send_res(res, result);
 });
@@ -978,7 +977,7 @@ app.get('/question_required', async function (req, res) {
 app.get('/add_report_content', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["report_id", "question_id", "answer"])) {
-    result = await add_report_content(req.query.report_id, req.query.question_id, req.query.answer);
+    result = await add_report_content(req.query.report_id, req.query.question_id, req.query.answer.replace("'", "''"));
   }
   send_res(res, result);
 });
