@@ -804,6 +804,7 @@ app.get('/remove_admin', async function (req, res) {
 app.get('/add_mentorship', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["mentor_id", "mentee_id"])) {
+    await deactivate_mentorship_by_mentee(req.query.mentee_id);
     await add_mentorship(req.query.mentor_id, req.query.mentee_id);
   }
   send_res(res, result);
