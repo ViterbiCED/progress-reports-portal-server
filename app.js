@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var pg = require('pg');
+const sendEmail = require("./utils/sendEmail");
 
 var conString = process.env.DATABASE_URL ? process.env.DATABASE_URL : "postgres://zxcvatghlmrxwm:f97710d59a7f20aa2ebaf2695a85b90ac8eece051f48edab0409eb497d983473@ec2-18-204-36-213.compute-1.amazonaws.com:5432/db9khoebffecb";
 var client;
@@ -1042,4 +1043,26 @@ app.get('/get_question_by_id', async function (req, res) {
 app.get('/get_current_questions', async function (req, res) {
   result = await get_current_questions();
   send_res(res, result);
+});
+
+app.post("/api/sendemail", async (req, res) => {
+  // const { email } = req.body;
+console.log("potato");
+  try {
+    const send_to = "cmkuo111@gmail.com";
+    const sent_from = "cedprogressreportsportaltest@gmail.com";
+    const reply_to = "cmkuo111@gmail.com";
+    const subject = "Thank You Message From NodeCourse";
+    const message = `
+        <h3>Hello</h3>
+        <p>Testing123</p>
+    `;
+
+    await sendEmail(subject, message, send_to, sent_from, reply_to);
+    // res.status(200).json({ success: true, message: "Email Sent" });
+    send_res(res, "result");
+  } catch (error) {
+    // res.status(500).json(error.message);
+  }
+
 });
