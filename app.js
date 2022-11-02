@@ -1043,3 +1043,7 @@ app.get('/get_current_questions', async function (req, res) {
   result = await get_current_questions();
   send_res(res, result);
 });
+
+app.use((req, res, next)=>{
+  res.status(404).send_res(res, null);
+});
