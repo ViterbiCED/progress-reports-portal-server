@@ -1046,12 +1046,7 @@ app.get('/get_current_questions', async function (req, res) {
   send_res(res, result);
 });
 
-// Not found
-app.use((req, res, next)=>{
-  res.status(404).send_res(res, null);
-});
-
-app.post("/send_approval_email", async (req, res) => {
+app.get("/send_approval_email", async (req, res) => {
 
   if (check_query_params(req.query, ["email", "mentor_name", "mentee_name"])) {
     await set_current_question_order(req.query.order);
@@ -1075,3 +1070,9 @@ app.post("/send_approval_email", async (req, res) => {
 
 
 });
+
+// Not found
+app.use((req, res, next)=>{
+  res.status(404).send_res(res, null);
+});
+
