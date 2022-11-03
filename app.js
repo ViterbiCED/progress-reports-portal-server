@@ -1046,31 +1046,6 @@ app.get('/get_current_questions', async function (req, res) {
   send_res(res, result);
 });
 
-// app.get("/send_approval_email", async (req, res) => {
-
-//   if (check_query_params(req.query, ["email", "mentor_name", "mentee_name"])) {
-//     try {
-//       const send_to = req.query.email;
-//       const sent_from = "cedprogressreportsportaltest@gmail.com";
-//       const reply_to = req.query.email;
-//       const subject = "Progress Report Approved: Feedback Received";
-//       const message = `
-//           <div>Hello + ${req.query.mentor_name},</div>
-//           <div>You have received feedback on your progress report for ${req.query.mentee_name}.</div>
-//       `;
-//       await sendEmail(subject, message, send_to, sent_from, reply_to);
-//       res.status(200).json({ success: true, message: "Email Sent" });
-      
-//     } catch (error) {
-//       res.status(500).json(error.message);
-//     }
-//     send_res(res, "Email sent");
-//   }
-  
-
-
-// });
-
 app.get("/send_approval_email", async (req, res) => {
   if (check_query_params(req.query, ["email", "mentor_name", "mentee_name"])) {
     try {
