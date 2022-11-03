@@ -1045,24 +1045,26 @@ app.get('/get_current_questions', async function (req, res) {
   send_res(res, result);
 });
 
-app.post("/api/sendemail", async (req, res) => {
-  // const { email } = req.body;
-console.log("potato");
+app.post("/send_approval_email", async (req, res) => {
+
+  if (check_query_params(req.query, ["email", "mentor_name", "mentee_name"])) {
+    await set_current_question_order(req.query.order);
+  }
   try {
-    const send_to = "cmkuo111@gmail.com";
+    const send_to = req.query.email;
     const sent_from = "cedprogressreportsportaltest@gmail.com";
-    const reply_to = "cmkuo111@gmail.com";
-    const subject = "Thank You Message From NodeCourse";
+    const reply_to = req.query.email;
+    const subject = "Progress Report Approved: Feedback Received";
     const message = `
-        <h3>Hello</h3>
-        <p>Testing123</p>
+        <div>Hello + ${req.query.mentor_name},</div>
+        <div>You have received feedback on your progress report for ${req.query.mentee_name}.</div>
     `;
 
     await sendEmail(subject, message, send_to, sent_from, reply_to);
-    // res.status(200).json({ success: true, message: "Email Sent" });
-    send_res(res, "result");
+    res.status(200).json({ success: true, message: "Email Sent" });
+    send_res(res, "Email sent");
   } catch (error) {
-    // res.status(500).json(error.message);
+    res.status(500).json(error.message);
   }
 
 });
