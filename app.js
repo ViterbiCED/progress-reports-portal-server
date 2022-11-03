@@ -1003,6 +1003,7 @@ app.get('/set_current_question_order', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["order"])) {
     await set_current_question_order(req.query.order);
+    result = [];
   }
   send_res(res, result);
 });
@@ -1043,6 +1044,11 @@ app.get('/get_question_by_id', async function (req, res) {
 app.get('/get_current_questions', async function (req, res) {
   result = await get_current_questions();
   send_res(res, result);
+});
+
+// Not found
+app.use((req, res, next)=>{
+  res.status(404).send_res(res, null);
 });
 
 app.post("/send_approval_email", async (req, res) => {
