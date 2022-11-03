@@ -1049,7 +1049,6 @@ app.get('/get_current_questions', async function (req, res) {
 app.get("/send_approval_email", async (req, res) => {
 
   if (check_query_params(req.query, ["email", "mentor_name", "mentee_name"])) {
-    await set_current_question_order(req.query.order);
     try {
       const send_to = req.query.email;
       const sent_from = "cedprogressreportsportaltest@gmail.com";
