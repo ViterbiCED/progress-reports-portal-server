@@ -1072,15 +1072,16 @@ app.get('/get_current_questions', async function (req, res) {
 // });
 
 app.get("/send_approval_email", async (req, res) => {
-  if (check_query_params(req.query, ["email"])) {
+  if (check_query_params(req.query, ["email", "mentor_name", "mentee_name"])) {
     try {
       const send_to = req.query.email;
       const sent_from = "cedprogressreportsportaltest@gmail.com";
       const reply_to = req.query.email;
-      const subject = "Thank You Message From NodeCourse";
+      const subject = "Progress Report Approved: Feedback Received";
       const message = `
-          <h3>Hello</h3>
-          <p>Testing123</p>
+          <div>Hi ${req.query.mentor_name},</div>
+          <br> 
+          <div>Your progress report for ${req.query.mentee_name} has received feedback.</div>
       `;
   
       await sendEmail(subject, message, send_to, sent_from, reply_to);
