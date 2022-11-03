@@ -1064,8 +1064,9 @@ app.get("/send_approval_email", async (req, res) => {
     } catch (error) {
       res.status(500).json(error.message);
     }
+    send_res(res, "Email sent");
   }
-  send_res(res, "Email sent");
+  
 
 
 });
