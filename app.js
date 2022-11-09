@@ -739,6 +739,7 @@ app.get('/remove_progress_report', async function (req,res) {
   var result = null;
   if (check_query_params(req.query, ["id"])) {
     await remove_progress_report(req.query.id);
+    result = await select_table("reports");
   }
   send_res(res, result);
 });
@@ -807,6 +808,7 @@ app.get('/add_mentorship', async function (req, res) {
   if (check_query_params(req.query, ["mentor_id", "mentee_id"])) {
     await deactivate_mentorship_by_mentee(req.query.mentee_id);
     await add_mentorship(req.query.mentor_id, req.query.mentee_id);
+    result = await select_table("mentors_mentees");
   }
   send_res(res, result);
 });
@@ -992,6 +994,7 @@ app.get('/delete_question', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["id"])) {
     await delete_question(req.query.id);
+    result = await select_table("questions");
   }
   send_res(res, result);
 })
@@ -1003,7 +1006,7 @@ app.get('/set_current_question_order', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["order"])) {
     await set_current_question_order(req.query.order);
-    result = [];
+    result = await select_table("question_orders");
   }
   send_res(res, result);
 });
@@ -1069,7 +1072,6 @@ app.get("/send_approval_email", async (req, res) => {
 
 
 });
-
 
 // Not found
 app.use((req, res, next)=>{
