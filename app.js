@@ -1,6 +1,7 @@
 var express = require('express'); 
 var app = express();
 var pg = require('pg');
+var cron = require('node-cron');
 const sendEmail = require("./utils/sendEmail");
 
 var conString = process.env.DATABASE_URL ? process.env.DATABASE_URL : "postgres://zxcvatghlmrxwm:f97710d59a7f20aa2ebaf2695a85b90ac8eece051f48edab0409eb497d983473@ec2-18-204-36-213.compute-1.amazonaws.com:5432/db9khoebffecb";
@@ -499,6 +500,11 @@ async function set_current_question_order(order) {
 
 async function get_current_questions() {
   var result = await client.query(`SELECT * FROM questions WHERE active = TRUE;`);
+  return result.rows;
+}
+
+async function get_admin_info() {
+  var result = await client.query(`SELECT name, email FROM administrator_info`);
   return result.rows;
 }
 
@@ -1072,6 +1078,42 @@ app.get("/send_approval_email", async (req, res) => {
 
 
 });
+
+app.get('/get_admin_info', async function (req, res) {
+  result = await get_admin_info();
+  send_res(res, result);
+});
+
+cron.schedule('0 8 * * *', async () => {
+  console.log('running a task every minute');
+
+  let admin_info = await get_admin_info();
+  let progress_reports = await get_pending_progress_reports();
+  let num_progress_reports = progress_reports.length;
+
+  admin_info.forEach(function (to, i , array) {
+    const send_to = to['email'];
+    const reply_to = to['email'];
+  
+    try {
+      const sent_from = "cedprogressreportsportaltest@gmail.com";
+      const subject = "Peer Mentor Progress Reports Daily Digest";
+      const message = `
+          <div>Hi ${to['name']},</div>
+          <br> 
+          <div>There are currently ${num_progress_reports} progress reports pending administrator approval.</div>
+      `;
+  
+      sendEmail(subject, message, send_to, sent_from, reply_to);
+      send_res(res, "Email Sent");
+    } catch (error) {
+      send_res(res, "Email Failed to Send");
+    }
+  });
+});
+
+
+
 
 // Not found
 app.use((req, res, next)=>{
