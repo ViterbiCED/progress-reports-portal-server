@@ -1085,7 +1085,6 @@ app.get('/get_admin_info', async function (req, res) {
 });
 
 cron.schedule('0 8 * * *', async () => {
-  console.log('running a task every minute');
 
   let admin_info = await get_admin_info();
   let progress_reports = await get_pending_progress_reports();
