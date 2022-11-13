@@ -487,12 +487,12 @@ async function get_question_by_id(id) {
 }
 
 async function set_current_question_order(order) {
-  await client.query(`UPDATE question_orders SET current = FALSE WHERE current = TRUE;`);
   if (await check_value_exists("question_orders", "question_order", `{${order}}`)) {
     await client.query(`UPDATE question_orders SET current = TRUE WHERE question_order = '{${order}}';`);
   } else {
     await client.query(`INSERT INTO question_orders(question_order) VALUES ('{${order}}');`);
   }
+  await client.query(`UPDATE question_orders SET current = FALSE WHERE question_order != '{${order}}';`);
   // set active statuses accordingly
   await client.query(`UPDATE questions SET active = CASE WHEN id IN (${order}) THEN TRUE ELSE FALSE END;`);
 }
