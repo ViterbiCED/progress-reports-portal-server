@@ -514,9 +514,15 @@ async function get_admin_info() {
   var result = await client.query(`SELECT name, email FROM administrator_info`);
   return result.rows;
 }
+
 async function get_reports_for_date_range(date1, date2) {
   var result = await client.query(`SELECT * FROM reports WHERE submission_date BETWEEN '${date1}' AND '${date2}'`);
   return result.rows;
+}
+
+async function delete_reports_for_date_range(date1, date2) {
+  await client.query(`DELETE FROM report_content WHERE report_content.id == reports.report_id AND reports.submission_date BETWEEN '${date1}' AND '${date2}'`);
+  await client.query(`DELETE FROM reports WHERE submission_date BETWEEN '${date1}' AND '${date2}'`);
 }
 
 // ===== API CALLS ======
@@ -1070,6 +1076,14 @@ app.get('/get_reports_for_date_range', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["date1", "date2"])) {
     result = await get_reports_for_date_range(req.query.date1, req.query.date2);
+  }
+  send_res(res, result);
+});
+
+app.get('/get_reports_for_date_range', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["date1", "date2"])) {
+    result = await delete_reports_for_date_range(req.query.date1, req.query.date2);
   }
   send_res(res, result);
 });
