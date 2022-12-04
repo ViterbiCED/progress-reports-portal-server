@@ -503,8 +503,13 @@ async function get_current_questions() {
   return result.rows;
 }
 
+
 async function get_admin_info() {
   var result = await client.query(`SELECT name, email FROM administrator_info`);
+  return result.rows;
+}
+async function get_reports_for_date_range(date1, date2) {
+  var result = await client.query(`SELECT * FROM reports WHERE submission_date BETWEEN '${date1}' AND '${date2}'`);
   return result.rows;
 }
 
@@ -1052,6 +1057,14 @@ app.get('/get_question_by_id', async function (req, res) {
 */
 app.get('/get_current_questions', async function (req, res) {
   result = await get_current_questions();
+  send_res(res, result);
+});
+
+app.get('/get_reports_for_date_range', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["date1", "date2"])) {
+    result = await get_reports_for_date_range(req.query.date1, req.query.date2);
+  }
   send_res(res, result);
 });
 
