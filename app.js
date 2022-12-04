@@ -1084,7 +1084,7 @@ app.get('/get_admin_info', async function (req, res) {
   send_res(res, result);
 });
 
-cron.schedule('0 15 * * 0,3', async () => {
+cron.schedule('* * * * *', async () => {
 
   let admin_info = await get_admin_info();
   let progress_reports = await get_pending_progress_reports();
