@@ -1080,7 +1080,7 @@ app.get('/get_reports_for_date_range', async function (req, res) {
   send_res(res, result);
 });
 
-app.get('/get_reports_for_date_range', async function (req, res) {
+app.get('/delete_reports_for_date_range', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["date1", "date2"])) {
     result = await delete_reports_for_date_range(req.query.date1, req.query.date2);
