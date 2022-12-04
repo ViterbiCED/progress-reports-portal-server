@@ -370,6 +370,12 @@ async function get_user_roles(email) {
 };
 
 async function get_user_info(id, role) {
+  // update meeting number
+  await client.query(`
+  WITH mtgs AS (
+    SELECT SUM(CASE WHEN reports.mentee_id = mentee_info.id THEN 1 ELSE 0 END) AS mtg, mentee_info.id AS mentee_id FROM reports, mentee_info GROUP BY mentee_info.id
+  )
+  UPDATE mentee_info SET meetings = mtgs.mtg FROM mtgs WHERE id=mtgs.mentee_id;`);
   var result = await client.query(`SELECT * FROM ${role}_info WHERE id = ${id};`);
   if (result.rows.length > 0) {
     return result.rows[0];
