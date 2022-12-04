@@ -1084,21 +1084,26 @@ app.get('/get_admin_info', async function (req, res) {
   send_res(res, result);
 });
 
-cron.schedule('* * * * *', async () => {
+cron.schedule('0 0 * * 1,3', async () => {
 
+  
   let admin_info = await get_admin_info();
   let progress_reports = await get_pending_progress_reports();
   let num_progress_reports = progress_reports.length;
 
-  admin_info.forEach(function (to, i , array) {
-    const send_to = to['email'];
-    const reply_to = to['email'];
-  
+  let admin_list = [];
+
+  for(let i = 0; i < admin_info.length; i++) {
+    admin_list.push(admin_info[i].email);
+  }
+
+  var send_to = admin_list;
+  var reply_to = admin_list;
     try {
-      const sent_from = "cedprogressreportsportaltest@gmail.com";
-      const subject = "Peer Mentor Progress Reports Daily Digest";
-      const message = `
-          <div>Hi ${to['name']},</div>
+      var sent_from = "cedprogressreportsportaltest@gmail.com";
+      var subject = "Peer Mentor Progress Reports Daily Digest";
+      var message = `
+          <div>Hi,</div>
           <br> 
           <div>There are currently ${num_progress_reports} progress reports pending administrator approval.</div>
       `;
@@ -1108,7 +1113,7 @@ cron.schedule('* * * * *', async () => {
     } catch (error) {
       send_res(res, "Email Failed to Send");
     }
-  });
+  // });
 });
 
 
