@@ -1097,7 +1097,7 @@ app.get('/get_admin_info', async function (req, res) {
   send_res(res, result);
 });
 
-cron.schedule('0 0 * * 1,3', async () => {
+cron.schedule('0 16 * * 1,3', async () => {
 
   
   let admin_info = await get_admin_info();
