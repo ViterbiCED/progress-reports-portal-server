@@ -530,14 +530,18 @@ async function get_current_questions() {
   return result.rows;
 }
 
-
 async function get_admin_info() {
   var result = await client.query(`SELECT name, email FROM administrator_info`);
   return result.rows;
 }
+
 async function get_reports_for_date_range(date1, date2) {
   var result = await client.query(`SELECT * FROM reports WHERE submission_date BETWEEN '${date1}' AND '${date2}'`);
   return result.rows;
+}
+
+async function delete_reports_for_date_range(date1, date2) {
+  await client.query(`DELETE FROM report_content WHERE report_content.report_id IN (SELECT report_id FROM reports WHERE reports.submission_date BETWEEN '${date1}' AND '${date2}')`);
 }
 
 // ===== API CALLS ======
@@ -1104,6 +1108,14 @@ app.get('/get_reports_for_date_range', async function (req, res) {
   send_res(res, result);
 });
 
+app.get('/delete_reports_for_date_range', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["date1", "date2"])) {
+    result = await delete_reports_for_date_range(req.query.date1, req.query.date2);
+  }
+  send_res(res, result);
+});
+
 app.get("/send_approval_email", async (req, res) => {
   if (check_query_params(req.query, ["email", "mentor_name", "mentee_name"])) {
     try {
@@ -1133,7 +1145,7 @@ app.get('/get_admin_info', async function (req, res) {
   send_res(res, result);
 });
 
-cron.schedule('0 0 * * 1,3', async () => {
+cron.schedule('0 16 * * 1,3', async () => {
 
   
   let admin_info = await get_admin_info();
