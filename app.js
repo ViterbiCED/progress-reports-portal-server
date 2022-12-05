@@ -1160,7 +1160,6 @@ app.get("/send_account_request_email", async (req, res) => {
           <br> 
           <div>An account has been requested for ${req.query.email}</div>
       `;
-  
       await sendEmail(subject, message, send_to, sent_from, reply_to);
       // res.status(200).json({ success: true, message: "Email Sent" });
       send_res(res, "result");
