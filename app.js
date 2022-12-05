@@ -547,6 +547,11 @@ async function delete_reports_for_date_range(date1, date2) {
 async function temp_delete_reports() {
   await client.query(`DELETE FROM reports`);
 }
+app.get('/temp_delete_reports', async function (req, res) {
+  await temp_delete_reports();
+  var result = await select_table("reports");
+  send_res(res, result);
+})
 
 // ===== API CALLS ======
 
@@ -1117,12 +1122,6 @@ app.get('/delete_reports_for_date_range', async function (req, res) {
   if (check_query_params(req.query, ["date1", "date2"])) {
     result = await delete_reports_for_date_range(req.query.date1, req.query.date2);
   }
-  send_res(res, result);
-});
-
-app.get('/temp_delete_reports', async function (req, res) {
-  var result = null;
-  temp_delete_reports();
   send_res(res, result);
 });
 
