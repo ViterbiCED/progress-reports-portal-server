@@ -1146,8 +1146,28 @@ app.get("/send_approval_email", async (req, res) => {
       // res.status(500).json(error.message);
     }
   }
+});
 
-
+app.get("/send_account_request_email", async (req, res) => {
+  if (check_query_params(req.query, ["email"])) {
+    try {
+      const send_to = "cmkuo@usc.edu";
+      const sent_from = "cedprogressreportsportaltest@gmail.com";
+      const reply_to = "cmkuo@usc.edu";
+      const subject = "CED Progress Report Portal New Account Request";
+      const message = `
+          <div>Dear Center of Engineering Diversity Staff,</div>
+          <br> 
+          <div>An account has been requested for ${req.query.email}</div>
+      `;
+  
+      await sendEmail(subject, message, send_to, sent_from, reply_to);
+      // res.status(200).json({ success: true, message: "Email Sent" });
+      send_res(res, "result");
+    } catch (error) {
+      // res.status(500).json(error.message);
+    }
+  }
 });
 
 app.get('/get_admin_info', async function (req, res) {
