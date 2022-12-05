@@ -370,6 +370,12 @@ async function get_user_roles(email) {
 };
 
 async function get_user_info(id, role) {
+  // update meeting number
+  await client.query(`
+  WITH mtgs AS (
+    SELECT SUM(CASE WHEN reports.mentee_id = mentee_info.id THEN 1 ELSE 0 END) AS mtg, mentee_info.id AS mentee_id FROM reports, mentee_info GROUP BY mentee_info.id
+  )
+  UPDATE mentee_info SET meetings = mtgs.mtg FROM mtgs WHERE id=mtgs.mentee_id;`);
   var result = await client.query(`SELECT * FROM ${role}_info WHERE id = ${id};`);
   if (result.rows.length > 0) {
     return result.rows[0];
@@ -508,9 +514,15 @@ async function get_admin_info() {
   var result = await client.query(`SELECT name, email FROM administrator_info`);
   return result.rows;
 }
+
 async function get_reports_for_date_range(date1, date2) {
   var result = await client.query(`SELECT * FROM reports WHERE submission_date BETWEEN '${date1}' AND '${date2}'`);
   return result.rows;
+}
+
+async function delete_reports_for_date_range(date1, date2) {
+  await client.query(`DELETE FROM report_content WHERE report_content.id == reports.report_id AND reports.submission_date BETWEEN '${date1}' AND '${date2}'`);
+  await client.query(`DELETE FROM reports WHERE submission_date BETWEEN '${date1}' AND '${date2}'`);
 }
 
 // ===== API CALLS ======
@@ -1064,6 +1076,14 @@ app.get('/get_reports_for_date_range', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["date1", "date2"])) {
     result = await get_reports_for_date_range(req.query.date1, req.query.date2);
+  }
+  send_res(res, result);
+});
+
+app.get('/delete_reports_for_date_range', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["date1", "date2"])) {
+    result = await delete_reports_for_date_range(req.query.date1, req.query.date2);
   }
   send_res(res, result);
 });
