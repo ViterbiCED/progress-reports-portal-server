@@ -262,8 +262,8 @@ async function get_mentees_of_mentor_id(id) {
 }
 
 async function get_mentee_info_of_mentor(mentor_id) {
-  var result = await client.query(`SELECT mentee_info.id, mentee_info.name, mentee_info.email,
-                      SUM(CASE WHEN reports.mentor_id=${mentor_id} AND reports.mentee_id = mentee_info.id THEN 1 ELSE 0 END) AS number_of_meetings
+  await refresh_number_meetings();
+  var result = await client.query(`SELECT mentee_info.id, mentee_info.name, mentee_info.email, mentee_info.meetings AS number_of_meetings
                       FROM mentee_info, mentors_mentees, reports
                       WHERE mentors_mentees.mentor_id = ${mentor_id} AND mentors_mentees.mentee_id = mentee_info.id AND mentors_mentees.active = true
                       GROUP BY mentee_info.id;`);
@@ -341,7 +341,7 @@ async function get_all_report_info() {
 }
 
 async function get_all_report_questions_answers() {
-  var result = await client.query(`SELECT questions.id AS question_id, questions.question, questions.type, questions.description, questions.required, questions.options, report_content.answer
+  var result = await client.query(`SELECT questions.id AS question_id, questions.question, questions.type, questions.description, questions.required, questions.options, report_content.answer, report_content.report_id AS report_id
   FROM questions, report_content
   WHERE report_content.question_id = questions.id;`);
   return result.rows;
@@ -390,13 +390,18 @@ async function get_user_roles(email) {
   return {"role": role, "id": id};
 };
 
-async function get_user_info(id, role) {
-  // update meeting number
+async function refresh_number_meetings() {
   await client.query(`
   WITH mtgs AS (
     SELECT SUM(CASE WHEN reports.mentee_id = mentee_info.id THEN 1 ELSE 0 END) AS mtg, mentee_info.id AS mentee_id FROM reports, mentee_info GROUP BY mentee_info.id
   )
   UPDATE mentee_info SET meetings = mtgs.mtg FROM mtgs WHERE id=mtgs.mentee_id;`);
+
+}
+
+async function get_user_info(id, role) {
+  // update meeting number
+  await refresh_number_meetings()
   var result = await client.query(`SELECT * FROM ${role}_info WHERE id = ${id};`);
   if (result.rows.length > 0) {
     return result.rows[0];
