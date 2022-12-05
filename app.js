@@ -509,7 +509,6 @@ async function get_current_questions() {
   return result.rows;
 }
 
-
 async function get_admin_info() {
   var result = await client.query(`SELECT name, email FROM administrator_info`);
   return result.rows;
@@ -521,7 +520,7 @@ async function get_reports_for_date_range(date1, date2) {
 }
 
 async function delete_reports_for_date_range(date1, date2) {
-  await client.query(`DELETE FROM report_content, reports WHERE report_content.report_id = reports.report_id AND reports.submission_date BETWEEN '${date1}' AND '${date2}'`);
+  await client.query(`DELETE FROM report_content WHERE report_content.report_id IN (SELECT report_id FROM reports WHERE reports.submission_date BETWEEN '${date1}' AND '${date2}')`);
 }
 
 // ===== API CALLS ======
