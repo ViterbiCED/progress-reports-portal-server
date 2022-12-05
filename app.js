@@ -334,6 +334,27 @@ async function get_progress_report(id) {
   };
 };
 
+async function get_all_report_info() {
+  var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, reports.submission_date, mentor_info.name AS mentor_name, mentee_info.name AS mentee_name, question_orders.question_order
+  FROM reports, mentor_info, mentee_info, question_orders WHERE question_orders.id = reports.question_order_id AND mentor_info.id = reports.mentor_id AND mentee_info.id = reports.mentee_id;`);
+  return result.rows;
+}
+
+async function get_all_report_questions_answers() {
+  var result = await client.query(`SELECT questions.id AS question_id, questions.question, questions.type, questions.description, questions.required, questions.options, report_content.answer
+  FROM questions, report_content
+  WHERE report_content.question_id = questions.id;`);
+  return result.rows;
+}
+
+async function get_all_progress_reports() {
+  return {
+    "report_info": await get_all_report_info(),
+    "questions_answers": await get_all_report_questions_answers()
+  };
+};
+
+
 async function approve_progress_report(id) {
   await client.query(`UPDATE reports SET approved = TRUE WHERE id = ${id};`);
 }
@@ -726,6 +747,15 @@ app.get('/get_progress_report', async function (req, res) {
   }
   send_res(res, result);
 });
+
+/*
+  http://localhost:3000/get_all_progress_reports
+*/
+app.get('/get_all_progress_reports', async function (req, res) {
+  var result = await get_all_progress_reports();
+  send_res(res, result);
+});
+
 
 /*
   http://localhost:3000/approve_report?id=1
