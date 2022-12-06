@@ -340,6 +340,13 @@ async function get_all_report_info() {
   return result.rows;
 }
 
+
+async function get_all_report_info_in_date_range(date1, date2) {
+  var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, reports.submission_date, mentor_info.name AS mentor_name, mentee_info.name AS mentee_name, question_orders.question_order
+  FROM reports, mentor_info, mentee_info, question_orders WHERE question_orders.id = reports.question_order_id AND mentor_info.id = reports.mentor_id AND mentee_info.id = reports.mentee_id AND reports.submission_date BETWEEN '${date1}' AND '${date2}';`);
+  return result.rows;
+}
+
 async function get_all_report_questions_answers() {
   var result = await client.query(`SELECT questions.id AS question_id, questions.question, questions.type, questions.description, questions.required, questions.options, report_content.answer, report_content.report_id AS report_id
   FROM questions, report_content
@@ -350,6 +357,13 @@ async function get_all_report_questions_answers() {
 async function get_all_progress_reports() {
   return {
     "report_info": await get_all_report_info(),
+    "questions_answers": await get_all_report_questions_answers()
+  };
+};
+
+async function get_all_progress_reports_in_date_range(date1, date2) {
+  return {
+    "report_info": await get_all_report_info_in_date_range(date1, date2),
     "questions_answers": await get_all_report_questions_answers()
   };
 };
@@ -771,6 +785,17 @@ app.get('/get_progress_report', async function (req, res) {
 */
 app.get('/get_all_progress_reports', async function (req, res) {
   var result = await get_all_progress_reports();
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/get_all_progress_reports_in_date_range?start=___&end=___
+*/
+app.get('/get_all_progress_reports_in_date_range', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["start", "end"])) {
+    result = await get_all_progress_reports_in_date_range();
+  }
   send_res(res, result);
 });
 
