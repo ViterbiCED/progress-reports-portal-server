@@ -560,17 +560,9 @@ async function get_reports_for_date_range(date1, date2) {
 }
 
 async function delete_reports_for_date_range(date1, date2) {
-  await client.query(`DELETE FROM report_content WHERE report_content.report_id IN (SELECT report_id FROM reports WHERE reports.submission_date BETWEEN '${date1}' AND '${date2}')`);
+  await client.query(`DELETE FROM report_content WHERE report_content.report_id IN (SELECT id FROM reports WHERE reports.submission_date BETWEEN '${date1}' AND '${date2}')`);
+  await client.query(`DELETE FROM reports WHERE reports.submission_date BETWEEN '${date1}' AND '${date2}')`);
 }
-
-async function temp_delete_reports() {
-  await client.query(`DELETE FROM reports`);
-}
-app.get('/temp_delete_reports', async function (req, res) {
-  await temp_delete_reports();
-  var result = await select_table("reports");
-  send_res(res, result);
-})
 
 // ===== API CALLS ======
 
