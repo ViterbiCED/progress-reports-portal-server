@@ -794,7 +794,7 @@ app.get('/get_all_progress_reports', async function (req, res) {
 app.get('/get_all_progress_reports_in_date_range', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["start", "end"])) {
-    result = await get_all_progress_reports_in_date_range();
+    result = await get_all_progress_reports_in_date_range(req.query.start, req.query.end);
   }
   send_res(res, result);
 });
