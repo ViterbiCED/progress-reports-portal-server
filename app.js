@@ -570,6 +570,16 @@ async function delete_all_reports() {
   await client.query(`DELETE FROM reports`);
 }
 
+async function delete_mentee(id) {
+  await client.query(`DELETE FROM mentors_mentees WHERE mentee_id = ${id}`);
+  await client.query(`DELETE FROM mentee_info WHERE id = ${id}`);
+}
+
+async function delete_mentor(id) {
+  await client.query(`DELETE FROM mentors_mentees WHERE mentor_id = ${id}`);
+  await client.query(`DELETE FROM mentor_info WHERE id = ${id}`);
+}
+
 // ===== API CALLS ======
 
 function send_res(res, result) {
@@ -1165,6 +1175,24 @@ app.get('/delete_reports_for_date_range', async function (req, res) {
 app.get('/delete_all_reports', async function (req, res) {
   await delete_all_reports();
   result = await select_table("reports");
+  send_res(res, result);
+});
+
+app.get('/delete_mentee', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    await delete_mentee(req.query.id);
+  }
+  result = await select_table("mentee_info");
+  send_res(res, result);
+});
+
+app.get('/delete_mentor', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    await delete_mentor(req.query.id);
+  }
+  result = await select_table("mentor_info");
   send_res(res, result);
 });
 
