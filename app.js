@@ -264,7 +264,7 @@ async function get_mentees_of_mentor_id(id) {
 async function get_mentee_info_of_mentor(mentor_id) {
   await refresh_number_meetings();
   var result = await client.query(`SELECT mentee_info.id, mentee_info.name, mentee_info.email, mentee_info.meetings AS number_of_meetings
-                      FROM mentee_info, mentors_mentees, reports
+                      FROM mentee_info, mentors_mentees
                       WHERE mentors_mentees.mentor_id = ${mentor_id} AND mentors_mentees.mentee_id = mentee_info.id AND mentors_mentees.active = true
                       GROUP BY mentee_info.id;`);
   return result.rows;
@@ -283,6 +283,7 @@ async function get_current_question_order() {
 async function add_progress_report(name, mentor_id, mentee_id, session_date) {
   var result = await client.query(`INSERT INTO reports(name, mentor_id, mentee_id, session_date, question_order_id)
                       VALUES ('${name}', '${mentor_id}', '${mentee_id}', '${session_date}', '${(await get_current_question_order()).id}') RETURNING id;`);
+  await client.query(`UPDATE mentee_info SET meetings = meetings + 1 WHERE mentee_info.id = ${mentee_id}`);
   return result.rows[0];
 };
 
@@ -407,9 +408,9 @@ async function get_user_roles(email) {
 async function refresh_number_meetings() {
   await client.query(`
   WITH mtgs AS (
-    SELECT SUM(CASE WHEN reports.mentee_id = mentee_info.id THEN 1 ELSE 0 END) AS mtg, mentee_info.id AS mentee_id FROM reports, mentee_info GROUP BY mentee_info.id
+    SELECT COALESCE(SUM(CASE WHEN reports.mentee_id = mentee_info.id THEN 1 ELSE 0 END),0) AS mtg, mentee_info.id AS mentee_id FROM reports, mentee_info GROUP BY mentee_info.id
   )
-  UPDATE mentee_info SET meetings = mtgs.mtg FROM mtgs WHERE id=mtgs.mentee_id;`);
+  UPDATE mentee_info SET meetings = mtgs.mtg FROM mtgs WHERE mentee_info.id=mtgs.mentee_id;`);
 
 }
 
