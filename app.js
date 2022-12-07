@@ -344,7 +344,7 @@ async function get_all_report_info() {
 
 async function get_all_report_info_in_date_range(date1, date2) {
   var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, reports.submission_date, mentor_info.name AS mentor_name, mentee_info.name AS mentee_name, question_orders.question_order
-  FROM reports, mentor_info, mentee_info, question_orders WHERE question_orders.id = reports.question_order_id AND mentor_info.id = reports.mentor_id AND mentee_info.id = reports.mentee_id AND reports.submission_date BETWEEN '${date1}' AND '${date2}';`);
+  FROM reports, mentor_info, mentee_info, question_orders WHERE question_orders.id = reports.question_order_id AND mentor_info.id = reports.mentor_id AND mentee_info.id = reports.mentee_id AND reports.session_date BETWEEN '${date1}' AND '${date2}';`);
   return result.rows;
 }
 
