@@ -1151,9 +1151,9 @@ app.get("/send_approval_email", async (req, res) => {
 app.get("/send_account_request_email", async (req, res) => {
   if (check_query_params(req.query, ["email"])) {
     try {
-      const send_to = "cmkuo@usc.edu";
+      const send_to = "viterbi.ced@usc.edu";
       const sent_from = "cedprogressreportsportaltest@gmail.com";
-      const reply_to = "cmkuo@usc.edu";
+      const reply_to = "viterbi.ced@usc.edu";
       const subject = "CED Progress Report Portal New Account Request";
       const message = `
           <div>Dear Center of Engineering Diversity Staff,</div>
