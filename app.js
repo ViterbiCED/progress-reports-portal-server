@@ -262,9 +262,9 @@ async function get_mentees_of_mentor_id(id) {
 }
 
 async function get_mentee_info_of_mentor(mentor_id) {
-  var result = await client.query(`SELECT mentee_info.id, mentee_info.name, mentee_info.email,
-                      SUM(CASE WHEN reports.mentor_id=${mentor_id} AND reports.mentee_id = mentee_info.id THEN 1 ELSE 0 END) AS number_of_meetings
-                      FROM mentee_info, mentors_mentees, reports
+  await refresh_number_meetings();
+  var result = await client.query(`SELECT mentee_info.id, mentee_info.name, mentee_info.email, mentee_info.meetings AS number_of_meetings
+                      FROM mentee_info, mentors_mentees
                       WHERE mentors_mentees.mentor_id = ${mentor_id} AND mentors_mentees.mentee_id = mentee_info.id AND mentors_mentees.active = true
                       GROUP BY mentee_info.id;`);
   return result.rows;
@@ -283,6 +283,7 @@ async function get_current_question_order() {
 async function add_progress_report(name, mentor_id, mentee_id, session_date) {
   var result = await client.query(`INSERT INTO reports(name, mentor_id, mentee_id, session_date, question_order_id)
                       VALUES ('${name}', '${mentor_id}', '${mentee_id}', '${session_date}', '${(await get_current_question_order()).id}') RETURNING id;`);
+  await client.query(`UPDATE mentee_info SET meetings = meetings + 1 WHERE mentee_info.id = ${mentee_id}`);
   return result.rows[0];
 };
 
@@ -340,8 +341,15 @@ async function get_all_report_info() {
   return result.rows;
 }
 
+
+async function get_all_report_info_in_date_range(date1, date2) {
+  var result = await client.query(`SELECT reports.id, reports.name, reports.session_date, reports.submission_date, mentor_info.name AS mentor_name, mentee_info.name AS mentee_name, question_orders.question_order
+  FROM reports, mentor_info, mentee_info, question_orders WHERE question_orders.id = reports.question_order_id AND mentor_info.id = reports.mentor_id AND mentee_info.id = reports.mentee_id AND reports.session_date BETWEEN '${date1}' AND '${date2}';`);
+  return result.rows;
+}
+
 async function get_all_report_questions_answers() {
-  var result = await client.query(`SELECT questions.id AS question_id, questions.question, questions.type, questions.description, questions.required, questions.options, report_content.answer
+  var result = await client.query(`SELECT questions.id AS question_id, questions.question, questions.type, questions.description, questions.required, questions.options, report_content.answer, report_content.report_id AS report_id
   FROM questions, report_content
   WHERE report_content.question_id = questions.id;`);
   return result.rows;
@@ -350,6 +358,13 @@ async function get_all_report_questions_answers() {
 async function get_all_progress_reports() {
   return {
     "report_info": await get_all_report_info(),
+    "questions_answers": await get_all_report_questions_answers()
+  };
+};
+
+async function get_all_progress_reports_in_date_range(date1, date2) {
+  return {
+    "report_info": await get_all_report_info_in_date_range(date1, date2),
     "questions_answers": await get_all_report_questions_answers()
   };
 };
@@ -390,13 +405,18 @@ async function get_user_roles(email) {
   return {"role": role, "id": id};
 };
 
-async function get_user_info(id, role) {
-  // update meeting number
+async function refresh_number_meetings() {
   await client.query(`
   WITH mtgs AS (
-    SELECT SUM(CASE WHEN reports.mentee_id = mentee_info.id THEN 1 ELSE 0 END) AS mtg, mentee_info.id AS mentee_id FROM reports, mentee_info GROUP BY mentee_info.id
+    SELECT COALESCE(SUM(CASE WHEN reports.mentee_id = mentee_info.id THEN 1 ELSE 0 END),0) AS mtg, mentee_info.id AS mentee_id FROM reports, mentee_info GROUP BY mentee_info.id
   )
-  UPDATE mentee_info SET meetings = mtgs.mtg FROM mtgs WHERE id=mtgs.mentee_id;`);
+  UPDATE mentee_info SET meetings = mtgs.mtg FROM mtgs WHERE mentee_info.id=mtgs.mentee_id;`);
+
+}
+
+async function get_user_info(id, role) {
+  // update meeting number
+  await refresh_number_meetings()
   var result = await client.query(`SELECT * FROM ${role}_info WHERE id = ${id};`);
   if (result.rows.length > 0) {
     return result.rows[0];
@@ -536,16 +556,28 @@ async function get_admin_info() {
 }
 
 async function get_reports_for_date_range(date1, date2) {
-  var result = await client.query(`SELECT * FROM reports WHERE submission_date BETWEEN '${date1}' AND '${date2}'`);
+  var result = await client.query(`SELECT * FROM reports WHERE session_date BETWEEN '${date1}' AND '${date2}'`);
   return result.rows;
 }
 
 async function delete_reports_for_date_range(date1, date2) {
-  await client.query(`DELETE FROM report_content WHERE report_content.report_id IN (SELECT report_id FROM reports WHERE reports.submission_date BETWEEN '${date1}' AND '${date2}')`);
+  await client.query(`DELETE FROM report_content WHERE report_content.report_id IN (SELECT id FROM reports WHERE reports.session_date BETWEEN '${date1}' AND '${date2}')`);
+  await client.query(`DELETE FROM reports WHERE session_date BETWEEN '${date1}' AND '${date2}'`);
 }
 
-async function temp_delete_reports() {
+async function delete_all_reports() {
+  await client.query(`DELETE FROM report_content`);
   await client.query(`DELETE FROM reports`);
+}
+
+async function delete_mentee(id) {
+  await client.query(`DELETE FROM mentors_mentees WHERE mentee_id = ${id}`);
+  await client.query(`DELETE FROM mentee_info WHERE id = ${id}`);
+}
+
+async function delete_mentor(id) {
+  await client.query(`DELETE FROM mentors_mentees WHERE mentor_id = ${id}`);
+  await client.query(`DELETE FROM mentor_info WHERE id = ${id}`);
 }
 
 // ===== API CALLS ======
@@ -761,6 +793,17 @@ app.get('/get_progress_report', async function (req, res) {
 */
 app.get('/get_all_progress_reports', async function (req, res) {
   var result = await get_all_progress_reports();
+  send_res(res, result);
+});
+
+/*
+  http://localhost:3000/get_all_progress_reports_in_date_range?start=___&end=___
+*/
+app.get('/get_all_progress_reports_in_date_range', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["start", "end"])) {
+    result = await get_all_progress_reports_in_date_range(req.query.start, req.query.end);
+  }
   send_res(res, result);
 });
 
@@ -1115,14 +1158,33 @@ app.get('/get_reports_for_date_range', async function (req, res) {
 app.get('/delete_reports_for_date_range', async function (req, res) {
   var result = null;
   if (check_query_params(req.query, ["date1", "date2"])) {
-    result = await delete_reports_for_date_range(req.query.date1, req.query.date2);
+    await delete_reports_for_date_range(req.query.date1, req.query.date2);
   }
+  result = await select_table("reports");
   send_res(res, result);
 });
 
-app.get('/temp_delete_reports', async function (req, res) {
+app.get('/delete_all_reports', async function (req, res) {
+  await delete_all_reports();
+  result = await select_table("reports");
+  send_res(res, result);
+});
+
+app.get('/delete_mentee', async function (req, res) {
   var result = null;
-  temp_delete_reports();
+  if (check_query_params(req.query, ["id"])) {
+    await delete_mentee(req.query.id);
+  }
+  result = await select_table("mentee_info");
+  send_res(res, result);
+});
+
+app.get('/delete_mentor', async function (req, res) {
+  var result = null;
+  if (check_query_params(req.query, ["id"])) {
+    await delete_mentor(req.query.id);
+  }
+  result = await select_table("mentor_info");
   send_res(res, result);
 });
 
